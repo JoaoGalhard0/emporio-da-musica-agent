@@ -260,6 +260,7 @@ proposed, implemented and ran things. Each phase ended with tests, a commit and 
 | 15 | Review of my justifications | Judged them sound, found a duplicated decision section, an out-of-order one and five stale statuses | Pandas and a vector DB go to "what comes next"; replace CLI-only with an endpoint; paid model in production, with cost kept viable |
 | 16 | HTTP API | FastAPI `/chat` and `/health`, 12 tests, a real request; chose a 128-bit session id | Asked for it; confirmed the id choice |
 | 17 | Final check-up | Re-read the code, ran tests and lint, found that its own API made the rate limiter unsafe across threads, fixed it with a test | Kept stylistic lint hints out of tested code on delivery day |
+| 18 | Consistency review | Found five stale claims left by my own late edits (test count, step number, API wording, concurrency, force-push note) and fixed them | Approved the fixes; the lesson is in the log |
 
 **Where the AI was wrong, and what caught it.** Writing this down is part of the point: the AI made real
 mistakes, and tests, evals or reading the output caught them.
