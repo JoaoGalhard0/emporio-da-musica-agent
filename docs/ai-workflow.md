@@ -11,6 +11,8 @@ Sonnet 5.5 (high effort) for implementation.
 | 1 | Reading the challenge statement, policies and CSVs | Sonnet 5.5 (initial session) |
 | 2 | Approach and harness proposal | Sonnet 5.5 (initial session) |
 | 3 | Repository setup and docs structure | Sonnet 5.5 (initial session) |
+| 4 | Language correction (English everywhere) | Sonnet 5.5 |
+| 5 | Discovery, requirements traceability and implementation plan | Sonnet 5.5 (see note) |
 
 > Note: the initial steps ran in the first session, before I fixed the model policy above.
 
@@ -32,3 +34,21 @@ Sonnet 5.5 (high effort) for implementation.
 - **I asked:** create the `emporio-da-musica-agent` repo, run `git init`, and create a `.env` for my key.
 - **AI did:** `.gitignore`, `.env` (empty) and `.env.example`, `CLAUDE.md`, docs skeleton.
 - **I decided:** the challenge PDF stays out of the repo; the key is never committed.
+
+## Step 4 — Language correction
+- **I asked:** make everything in the project English and fix the first commit.
+- **AI did:** rewrote the docs and `CLAUDE.md` in English and amended the first commit locally.
+- **I decided:** repo artifacts in English; the agent still answers customers in Brazilian Portuguese.
+
+## Step 5 — Discovery, requirements and plan
+- **I asked:** discover the data and the PDFs, plan the implementation, and make sure 100% of the
+  challenge requirements are covered, with bottlenecks identified.
+- **AI did:** profiled all CSVs and cross-checked orders vs items vs products vs promotions; read the
+  manual line by line; produced `discovery.md` (13 data findings, 13 policy findings, with handling),
+  `requirements.md` (traceability matrix + 10 bottlenecks) and `plan.md` (phases, evals, layout).
+  Notable catches: conflicting phone numbers, conflicting installment and defect rules, duplicate
+  email (customers 11/43), orders 3 and 20 with totals that do not match their items, an "active"
+  product with zero stock, and a `coming_soon` product inside delivered orders.
+- **Decided / pending my review:** the assumptions in discovery P1–P4, D7, D8.
+- **Model note:** this step ran on Sonnet 5.5 because I had not switched to Opus 5.5 yet; I will
+  review the plan with Opus before coding starts.
