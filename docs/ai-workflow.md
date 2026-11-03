@@ -25,6 +25,7 @@ Sonnet 5.5 (high effort) for implementation.
 | 15 | Pre-submission review of my justifications, and the doc fixes it led to | Sonnet 5.5 |
 | 16 | HTTP API (FastAPI), requested after the review | Sonnet 5.5 |
 | 17 | Final docs and code check-up, and the bug the API exposed | Sonnet 5.5 |
+| 18 | Consistency fixes found by an independent review of the README | Sonnet 5.5 |
 
 > Note: the initial steps ran in the first session, before I fixed the model policy above.
 
@@ -243,4 +244,18 @@ Sonnet 5.5 (high effort) for implementation.
   larger model only if the evals justify it). The AI refused to write a cost-per-conversation number it could
   not verify, so D24 says that figure has to be measured against the provider's current price list.
 - **Still not done:** the full live eval pass on the final code (daily quota, see Step 14).
+- **Model note:** Sonnet 5.5.
+
+## Step 18 — Consistency fixes from an independent review
+- **I asked:** to fix five inconsistencies that a separate review of the README had found.
+- **What the review found, all of them left by my own edits in Steps 16-17 (the docs lagged behind the code):**
+  - the README said 156 offline tests in two places; there are 157 since the rate-limiter concurrency test;
+  - the traceability row for the architecture question said the API was built in "step 15"; it was step 16;
+  - a sentence still said an HTTP API "would be" a thin wrapper, after the API existed;
+  - the limitations said "no concurrency", which contradicted the API (threads, per-session lock, thread-safe limiter);
+  - the early force-push was explained only in `requirements.md`, while the challenge statement asks for the
+    history to be honest about it; the README now says it in one paragraph.
+- **AI did:** fixed the five points, ran the suite, committed, and regenerated the submission PDF.
+- **Lesson recorded:** adding a feature late creates stale claims in documents that were already "final";
+  next time, search the docs for the old claim at the moment the feature lands, not at the end.
 - **Model note:** Sonnet 5.5.
