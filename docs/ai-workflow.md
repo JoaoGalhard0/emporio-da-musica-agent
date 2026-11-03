@@ -70,3 +70,12 @@ Sonnet 5.5 (high effort) for implementation.
   `gemini-3.5-flash` returns 429 after 6 requests. Recommended `gemini-3.5-flash-lite`.
 - **I decided:** accepted the measured recommendation (results are in `docs/decisions.md` D6).
 - **Model note:** Sonnet 5.5. The key was read from `.env` by the scripts and never printed.
+
+## Step 8 — Phase 1: data layer
+- **I asked:** proceed after pushing the corrected history (I ran the force-push myself).
+- **AI did:** typed models, a `Store` loader (UTF-8, `Decimal`, reference checks that fail loudly,
+  data-quality notes), accent-insensitive text helpers, an injectable store clock (`STORE_NOW`), and 13
+  tests that reproduce the discovery findings.
+- **A mistake the tests caught:** the discovery said 49 customers (counted with `wc -l` on a file with
+  no trailing newline); the loader says 50. I fixed the test and the discovery doc.
+- **Model note:** Sonnet 5.5.
