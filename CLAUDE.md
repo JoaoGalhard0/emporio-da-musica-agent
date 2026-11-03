@@ -7,7 +7,9 @@ Text-based customer service agent prototype for the fictional store Empório da 
 ## Sources of truth
 - `data/*.csv`: products, categories, customers, orders, order items, promotions.
 - `data/políticas_da_loja.pdf`: store policies and procedures manual (v2.1, in Portuguese).
-- LLM provider: OpenAI API (function calling). Key lives in `.env` (never commit it).
+- LLM provider: Gemini API free tier via its OpenAI-compatible endpoint (function calling), behind a
+  provider-agnostic client (see `docs/decisions.md` D1, D12). Config and key live in `.env`
+  (`LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `EMBEDDING_MODEL`); never commit it.
 
 ## Language rules
 - **Everything in this repo is in English**: code, identifiers, comments, docs, commit messages,

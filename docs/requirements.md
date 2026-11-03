@@ -49,7 +49,7 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 
 | # | Bottleneck | Impact | Mitigation |
 |---|------------|--------|------------|
-| B1 | OpenAI key, credits or model access unavailable or rate-limited | Blocks every example | List accessible models first (phase 0); pick model from the actual list; keep temperature low; retry with backoff; cap tool-call loop |
+| B1 | LLM key, quota or model access unavailable or rate-limited (the OpenAI account already had no credits, so the provider moved to the Gemini free tier, D1) | Blocks every example; free-tier limits are low and a tool-using turn costs several requests | List accessible models first (phase 0); pick from the actual list; provider-agnostic client (D12); retry with backoff and a request throttle; cap the tool-call loop; run evals sequentially and cache embeddings; fall back to another configured provider if quota is exhausted |
 | B2 | LLM invents prices/stock/deadlines | Violates manual 7.1; core evaluation point | Tool-only facts; numeric logic in code; eval asserts tool calls happened; prompt forbids unsourced numbers |
 | B3 | Order data leak (LGPD, duplicate email D9) | Serious correctness/privacy flaw | Verification bound to order owner; never reveal other customers' data; eval with wrong-identity attempt |
 | B4 | Date-dependent answers (return window, opening hours) | Wrong or unreproducible answers | Single injectable `today`/`now`, timezone America/Campo_Grande; fixed date in examples |

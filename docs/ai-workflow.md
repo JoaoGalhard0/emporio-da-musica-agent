@@ -52,3 +52,12 @@ Sonnet 5.5 (high effort) for implementation.
 - **Decided / pending my review:** the assumptions in discovery P1–P4, D7, D8.
 - **Model note:** this step ran on Sonnet 5.5 because I had not switched to Opus 5.5 yet; I will
   review the plan with Opus before coding starts.
+
+## Step 6 — Provider change (OpenAI to Gemini free tier)
+- **I asked:** switch the LLM provider because my OpenAI account has no credits; pick the best free
+  option from the ones the AI had listed.
+- **AI did:** searched the current Gemini free-tier limits and OpenAI-compatibility docs; proposed
+  Gemini via its OpenAI-compatible endpoint and a provider-agnostic client, so a provider change is
+  a config change. Updated D1, D5, D6, D12, bottleneck B1 and the env files.
+- **I decided:** Gemini free tier. Open risk the AI flagged: low, unconfirmed free-tier rate limits.
+- **Model note:** Sonnet 5.5.
