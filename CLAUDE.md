@@ -36,9 +36,11 @@ Text-based customer service agent prototype for the fictional store Empório da 
 - `docs/ai-workflow.md`: numbered log of the collaboration with the AI. Update at the end of each
   step with the request, what the AI did, what the author decided, and model/effort used.
 
-## Model policy (set by the author)
-- Discovery, planning and architecture decisions: Opus 5.5, medium effort.
-- Code implementation: Sonnet 5.5, high effort.
+## Model policy (set by the author, not followed in practice)
+- Intended: Opus 5.5 (medium effort) for discovery, planning and architecture; Sonnet 5.5 (high effort)
+  for implementation.
+- Actual: every step ran on Sonnet 5.5 (the session model was never switched). `docs/ai-workflow.md`
+  records the model used at each step.
 
 ## Commands
 ```

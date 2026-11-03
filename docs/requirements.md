@@ -7,34 +7,34 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 
 | ID | Requirement (from the statement) | Covered by | Proof | Status |
 |----|----------------------------------|------------|-------|--------|
-| R1 | Persona aligned with the store's identity and tone | System prompt (P13: informal, professional, music-savvy, pt-BR, greets by name) | Examples + eval of tone checks | built, evals pending |
-| R2 | Receive and answer messages using the provided context | CLI loop + conversation history + tools over CSV/PDF | All examples | built, evals pending |
-| R3a | Know when to query **data** (availability, price, order status) | Product/order tools, tool-first prompt rule (7.1) | Eval: no price/stock/status answer without a tool call | built, evals pending |
-| R3b | Know when to query **policies** (exchange, hours, payment) | `search_policies` + rule-based tools (returns, payment, freight, hours) | Eval: policy questions cite the right section | built, evals pending |
-| R4 | Handle out-of-scope questions | Scope rule in prompt, accessory redirect (P6), off-topic refusal | Eval + 1 example | built, evals pending |
-| R5 | Python as the main language | Entire project | Repo | built, evals pending |
+| R1 | Persona aligned with the store's identity and tone | System prompt (P13: informal, professional, music-savvy, pt-BR, greets by name) | Examples + eval of tone checks | done: live evals + examples (see README, "Tests and evals") |
+| R2 | Receive and answer messages using the provided context | CLI loop + conversation history + tools over CSV/PDF | All examples | done: live evals + examples (see README, "Tests and evals") |
+| R3a | Know when to query **data** (availability, price, order status) | Product/order tools, tool-first prompt rule (7.1) | Eval: no price/stock/status answer without a tool call | done: live evals + examples (see README, "Tests and evals") |
+| R3b | Know when to query **policies** (exchange, hours, payment) | `search_policies` + rule-based tools (returns, payment, freight, hours) | Eval: policy questions cite the right section | done: live evals + examples (see README, "Tests and evals") |
+| R4 | Handle out-of-scope questions | Scope rule in prompt, accessory redirect (P6), off-topic refusal | Eval + 1 example | done: live evals + examples (see README, "Tests and evals") |
+| R5 | Python as the main language | Entire project | Repo | done: live evals + examples (see README, "Tests and evals") |
 
 ## Technical decisions to justify in the README
 
 | ID | Decision | Where decided | Status |
 |----|----------|---------------|--------|
-| T1 | Framework / agent approach | `decisions.md` D2 | proposed |
-| T2 | Model and provider | D1, D6 | proposed |
+| T1 | Framework / agent approach | `decisions.md` D2, D15 | accepted |
+| T2 | Model and provider | D1, D6, D12, D22 | accepted |
 | T3 | Interaction interface | D7 (CLI) | accepted (D7, D19) |
 | T4 | Conversation history persistence | D8 | accepted (D8, D19) |
-| T5 | Data handling | D4, discovery section B | proposed |
-| T6 | Retrieval architecture and prompt strategy | D5, D9 | proposed |
+| T5 | Data handling | D4, discovery section B | accepted |
+| T6 | Retrieval architecture and prompt strategy | D5, D9, D17, D21 | accepted |
 
 ## Deliverables
 
 | ID | Deliverable | Plan | Status |
 |----|-------------|------|--------|
-| E1 | Public Git repo with real commit history (no single commit, no force-push of everything) | Small semantic commits per phase | in progress |
-| E2 | No repo changes after the deadline | Freeze at final checklist; set a reminder | todo |
-| E3 | README: run instructions (env, provider, commands) | Phase 7 | todo |
-| E4 | README: technical decisions justified | Generated from `decisions.md` | todo |
-| E5 | README: known limitations and what I'd do with more time | Phase 7 | todo |
-| E6 | README: AI assistant usage and workflow | From `ai-workflow.md` | todo |
+| E1 | Public Git repo with real commit history (no single commit, no force-push of everything) | Small semantic commits per phase | done (one early force-push, before any delivery, to translate the first commits to English) |
+| E2 | No repo changes after the deadline (03/11 23:59) | Freeze at final checklist | at the end: no pushes after the final one |
+| E3 | README: run instructions (env, provider, commands) | Phase 7 | done |
+| E4 | README: technical decisions justified | Summarized from `decisions.md` | done |
+| E5 | README: known limitations and what I'd do with more time | Phase 7 | done |
+| E6 | README: AI assistant usage and workflow | From `ai-workflow.md` | done |
 | E7 | 3–5 example conversations (.md), at least one non-trivial (live data or policy rules) | `examples/`, produced by real runs of the eval script | done: 5 conversations in `examples/`, from runs that passed every check |
 | E8 | Reply to the hiring email with the repo link | Manual, last step | todo |
 
@@ -56,6 +56,6 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 | B5 | Contradictions in the manual (P1–P4) | Inconsistent agent answers | Resolved once, documented as assumptions, covered by unit tests |
 | B6 | Retrieval misses the right policy section | Wrong policy answer | Section-level chunks (25), hybrid keyword+semantic search (measured in D5), top-k=3 with section titles, eval per policy topic; known miss: "chegou quebrado" -> 5.2; fallback "consult a human" when nothing matches |
 | B7 | Examples not reproducible or faked | Credibility loss | Examples generated by a script that runs real conversations and saves transcripts |
-| B8 | Time: deadline is tomorrow 11:59 | Incomplete delivery | Phases ordered by value; README and examples reserved for the last block; freeze 1h before deadline |
+| B8 | Time: deadline 03/11 23:59 | Incomplete delivery | Phases ordered by value; README and examples reserved for the last block; freeze 1h before deadline |
 | B9 | Evaluator cannot run it (no key, env issues) | Unverified work | `.env.example`, one-command setup, pinned deps, transcripts committed so results are visible without running |
 | B10 | Windows console encoding (pt-BR accents) | Garbled output | Explicit UTF-8 everywhere, `PYTHONUTF8=1` documented |
