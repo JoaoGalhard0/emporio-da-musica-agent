@@ -46,7 +46,22 @@ or evals, then `accepted`.
   opening hours) live in Python, because the model must not do that math. Prose rules (scope,
   warranty exclusions, complaints) come from retrieval.
 - **Risk:** retrieval misses a section (B6). Mitigation: top-k=3, evals per topic.
-- **Status:** proposed.
+- **Built in phase 3:** 25 chunks (one per numbered section, with the parent title as breadcrumb);
+  hybrid search = BM25 keyword + embeddings, fused by reciprocal rank; embeddings cached on disk;
+  keyword-only fallback when the provider fails, with a 60 s cooldown so a quota error is not hammered.
+- **Measured (2026-11-03, `gemini-embedding-001`, top-3 unless noted):**
+
+  | Query set | Keyword only | Hybrid |
+  |-----------|--------------|--------|
+  | 18 direct customer questions (top-3) | 18/18 | 18/18 |
+  | 18 direct questions (top-1) | 15/18 | 15/18 |
+  | 10 hard paraphrases (top-1) | 4/10 | **8/10** |
+  | 10 hard paraphrases (top-3) | 8/10 | **9/10** |
+
+  Keyword search alone is enough for questions that reuse the manual's words; embeddings earn their
+  place on paraphrases ("comprei ontem e já não quero mais" -> 4.1). Known miss for both:
+  "o instrumento chegou quebrado" does not surface 5.2 (damage on delivery).
+- **Status:** accepted.
 
 ## D6 — Model: `gemini-3.5-flash-lite` (chat) and `gemini-embedding-001` (embeddings)
 - **Method:** phase 0 listed the 60 models the key can use and ran `scripts/probe_models.py`
@@ -124,3 +139,9 @@ or evals, then `accepted`.
 - **Holidays:** national holidays (fixed dates, Consciência Negra, Good Friday computed from Easter)
   count as closed. State and municipal holidays are not in the material: known limitation.
 - **Status:** accepted.
+
+## D14 — Contradictory contact details are fixed at load time, not left to the model
+- The manual lists two phone numbers and two e-mail spellings (discovery P1, P2). The chunker rewrites
+  the minority values to the chosen ones (`(67) 3341-4444`, `emporiodamusica.com.br`), so retrieval
+  cannot show the model both. The PDF stays untouched; the rule is visible in code and tested.
+- **Status:** accepted (to be confirmed with the store, see README assumptions).

@@ -88,3 +88,21 @@ Sonnet 5.5 (high effort) for implementation.
   defect split with a human handoff; treating "above R$ 500" as strictly greater; national holidays as
   closed days (a real-date run on 2026-11-02 correctly reports the store closed).
 - **Model note:** Sonnet 5.5.
+
+## Step 10 — Phase 3: policy retrieval
+- **I asked:** proceed to phase 3 (and, earlier, whether we follow SOLID / Clean Architecture / FastAPI;
+  I chose to keep the pragmatic layered design and defer FastAPI).
+- **AI did:** extracted the PDF with `pypdf` layout mode, chunked it into 25 sections, built hybrid
+  retrieval (BM25 + embeddings, rank fusion, disk cache, keyword fallback) and a provider-agnostic
+  `LLMClient`. Measured keyword vs hybrid on 18 direct and 10 paraphrased questions.
+- **Problems found along the way (and fixed):**
+  1. Gemini's compatibility layer returns `index=None` on embeddings; sorting by it crashed, and the
+     retry on every search burned the free-tier quota (100 embedded texts/minute, counted per text).
+     Fixed with response-order reading plus a 60 s cooldown after a failure.
+  2. The contact-details fix (P1/P2) I thought I had applied was silently missing: my scripted edit
+     matched nothing. A test written before the check caught it; I redid the edit with the Edit tool.
+  3. The heading of section 5.2 sits at the bottom of a page and its body on the next, so the manual
+     is chunked as one stream rather than page by page.
+- **Honest result:** hybrid does not beat keyword on direct questions (both 18/18 in the top 3); it
+  doubles top-1 accuracy on paraphrases (8/10 vs 4/10). That is the justification for keeping it.
+- **Model note:** Sonnet 5.5.

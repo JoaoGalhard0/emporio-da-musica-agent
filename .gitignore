@@ -19,3 +19,6 @@ desafio_tecnico_ai_eng_artefact.pdf
 
 # Conversation history generated at runtime
 .conversations/
+
+# Embedding cache (rebuilt on first run)
+.cache/
