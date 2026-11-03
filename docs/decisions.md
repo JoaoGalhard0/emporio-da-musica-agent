@@ -197,3 +197,17 @@ or evals, then `accepted`.
 - **FastAPI:** not built; the agent core has no I/O, so a `/chat` endpoint would be a thin wrapper.
   Left as a "what I'd do with more time" item.
 - **Status:** accepted.
+
+## D20 — Evals check behavior, not wording
+- **Framework** (`evals/`): scripted customer conversations; each step has checks on the tools called,
+  the session state (who is verified) and the reply text. 27 scenarios cover the four scenarios
+  suggested in the challenge plus identity attacks, prompt injection, scope and complaints.
+- **Implicit checks on every reply:** the turn did not fail; every R$ amount is grounded (D17); no
+  Markdown bold or headings (WhatsApp style); at most one emoji; no first-person claim of an action
+  ("registrei", "abri um chamado") without the tool call that performs it; and the agent never
+  passes an e-mail or phone the customer did not type.
+- The framework has its own offline tests: an eval with a bug would misreport the agent.
+- **Known limit:** checks look for substrings and tool calls. They cannot judge tone or catch every
+  semantic error, which is why the example transcripts were also read by a human (see ai-workflow).
+- **Examples are published only from runs that passed every check**, unedited, by the runner itself.
+- **Status:** accepted.

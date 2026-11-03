@@ -27,3 +27,9 @@ desafio_tecnico_ai_eng_artefact.pdf
 *.egg-info/
 build/
 dist/
+
+# Eval transcripts are regenerated on every run; the curated ones live in examples/
+evals/transcripts/
+
+# Raw console logs of eval runs
+evals_run*.log

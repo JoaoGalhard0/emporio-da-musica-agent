@@ -297,7 +297,8 @@ class ToolBox:
             "order_id": order.id,
             "status": order.status,
             "status_pt": _STATUS_PT[order.status],
-            "order_date": _fmt_date(order.order_date),
+            # Named so the model cannot mistake it for a shipping date, which the data does not have.
+            "order_placed_on": _fmt_date(order.order_date),
             "items": [{"product": self.store.products[i.product_id].name, "quantity": i.quantity}
                       for i in order.items],
             "total": format_brl(order.total),
@@ -314,7 +315,8 @@ class ToolBox:
             "pending": "Order received and not confirmed yet; there is no tracking code yet.",
             "confirmed": "Order confirmed and not shipped yet; the tracking code is sent by e-mail and "
             "WhatsApp as soon as it ships.",
-            "shipped": "Order shipped; use the tracking code.",
+            "shipped": "Order shipped; use the tracking code. The shipping date is not available: do "
+            "not state one.",
             "delivered": "Order delivered.",
             "cancelled": "Order cancelled; the reason is in notes.",
         }[order.status]

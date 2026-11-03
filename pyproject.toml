@@ -24,7 +24,7 @@ emporio-agent = "emporio_agent.cli:main"
 where = ["src"]
 
 [tool.pytest.ini_options]
-pythonpath = ["src", "tests"]
+pythonpath = ["src", "tests", "evals"]
 testpaths = ["tests"]
 # Tests that call the real provider spend free-tier quota, so they are opt-in: pytest -m live
 addopts = "-m \"not live\""

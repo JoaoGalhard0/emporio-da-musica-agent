@@ -139,3 +139,29 @@ Sonnet 5.5 (high effort) for implementation.
 - **Decision I kept for the AI's proposal:** FastAPI stays out for now; the agent core is I/O-free so
   an endpoint is a thin wrapper, listed under "what I'd do with more time".
 - **Model note:** Sonnet 5.5.
+
+## Step 13 — Phase 6: evals and example conversations
+- **I asked:** proceed to phase 6.
+- **AI did:** an eval framework and 27 scenarios, ran them against the real model, analyzed failures,
+  fixed the causes, and generated example transcripts from passing runs.
+- **Run 1: 23 of 25 passed.** The two failures had different causes, and the AI had to tell them apart:
+  - `complaint_escalation` was a real agent flaw: it asked for an order number and e-mail to register a
+    complaint, which the manual does not require. Fixed in the prompt.
+  - `defect_warranty_gray_zone` was a bug in the eval: the agent correctly escalated in the first turn,
+    as the tool instructed; the scenario wrongly expected it in the second. Fixed the scenario.
+- **Run 2: 50 of 50, and that was not enough.** Reading the transcripts found two real defects the
+  checks had missed: the agent said an order "shipped on 15/02" when 15/02 is the *order* date (the
+  data has no shipping date), and it said "I noted your phone preference" without calling any tool.
+  Fixes: the tool field was renamed `order_placed_on` with an explicit hint, the prompt forbids
+  claiming actions without a tool call, and two new implicit checks now catch both patterns.
+- **A check I rewrote instead of loosening:** `order_shipped_verified` began failing 3/3 because the
+  agent called the order tool without a contact before asking for it. That is safe (the code reveals
+  nothing and returns "verification required"), so I replaced "never call the tool" by the real
+  invariants: nothing disclosed before verification, and the agent never passes a contact the customer
+  did not type.
+- **Last run was killed by the system for low memory** after 52 of 54 runs, all passing; the final
+  scenario (`showcase_scope_and_safety`) did not run, so `examples/05-*` and a fresh `evals/results.md`
+  do not exist yet. Not restarted on its own; to be re-run when memory allows.
+- **Open issue found in the published example 03:** the agent still makes that harmless early tool call
+  without a contact. Candidate fix: a stricter prompt line, to be validated with a live run.
+- **Model note:** Sonnet 5.5.
