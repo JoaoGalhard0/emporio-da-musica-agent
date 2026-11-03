@@ -20,10 +20,11 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 |----|----------|---------------|--------|
 | T1 | Framework / agent approach | `decisions.md` D2, D15 | accepted |
 | T2 | Model and provider | D1, D6, D12, D22 | accepted |
-| T3 | Interaction interface | D7 (CLI) | accepted (D7, D19) |
+| T3 | Interaction interface | D7 (CLI), D23 (HTTP API) | accepted (D7, D19, D23) |
 | T4 | Conversation history persistence | D8 | accepted (D8, D19) |
 | T5 | Data handling | D4, discovery section B | accepted |
 | T6 | Retrieval architecture and prompt strategy | D5, D9, D17, D21 | accepted |
+| T7 | Production model and cost (beyond the prototype) | D24 | proposed: a plan, not implemented |
 
 ## Deliverables
 

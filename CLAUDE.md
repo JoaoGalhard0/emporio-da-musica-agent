@@ -51,6 +51,7 @@ copy .env.example .env                             # then fill LLM_API_KEY
 python -m emporio_agent                            # interactive chat
 python -m emporio_agent --tools --now 2026-02-20T10:00   # show tool calls, fixed store clock
 python -m emporio_agent --resume <session-id>      # continue a saved conversation
+uvicorn emporio_agent.api:create_app --factory     # HTTP API: POST /chat, GET /health
 python -m emporio_agent --script s.txt --out examples/s.md   # replay customer messages
 
 pytest                                             # offline tests (no network)

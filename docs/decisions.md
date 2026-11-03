@@ -24,7 +24,7 @@ or evals, then `accepted`.
 - **Rationale:** structured questions (price, stock, orders) need exact answers; free-form SQL adds
   injection and hallucination risk; policy text is short prose that suits retrieval. A small set of
   typed tools bounds what the model can do and makes "when to consult data vs policies" explicit.
-- **Status:** proposed.
+- **Status:** accepted (validated by the live evals, D20).
 
 ## D3 — Repository language: English
 - All code, docs, prompts and commit messages are in English. The agent replies to customers in
@@ -35,7 +35,12 @@ or evals, then `accepted`.
 - **Alternatives:** pandas, SQLite.
 - **Rationale:** 65 products and 20 orders do not justify either; fewer dependencies means an easier
   setup for the evaluator. Money uses `Decimal`; `specs` JSON is parsed at load; files are UTF-8.
-- **Status:** proposed.
+- **When this stops being right:** pandas earns its place for analytics over thousands of rows
+  (sales reports, bulk imports); a database (SQLite, then Postgres) when the data is written by
+  several users at once, changes during the day (real stock, real orders) or no longer fits in
+  memory. Until then the loaders are the only code that would change, because the tools talk to
+  `Store`, not to the files.
+- **Status:** accepted.
 
 ## D5 — Policies: section-level chunks + embedding search, numbers computed in code
 - **Alternatives:** whole manual in the system prompt; keyword/BM25 only.
@@ -61,6 +66,10 @@ or evals, then `accepted`.
   Keyword search alone is enough for questions that reuse the manual's words; embeddings earn their
   place on paraphrases ("comprei ontem e já não quero mais" -> 4.1). Known miss for both:
   "o instrumento chegou quebrado" does not surface 5.2 (damage on delivery).
+- **When a vector database becomes right:** with 25 chunks, an in-memory index plus an on-disk
+  embedding cache is exact and free. A vector store (pgvector, Qdrant) pays off once the corpus is
+  thousands of chunks, is updated while running, or needs filtering by metadata (product line,
+  policy version). The retriever's interface (`search(query) -> sections`) would not change.
 - **Status:** accepted.
 
 ## D6 — Model: `gemini-3.5-flash-lite` (chat) and `gemini-embedding-001` (embeddings)
@@ -85,26 +94,19 @@ or evals, then `accepted`.
   client (D12) retries 429s with backoff.
 - **Status:** accepted. Re-check against eval results in phase 6.
 
-## D12 — Provider-agnostic LLM client
-- **Decision:** one thin wrapper around the OpenAI-compatible chat/embeddings API, configured by
-  `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `EMBEDDING_MODEL`. The rest of the code never imports a
-  provider-specific SDK.
-- **Why:** the provider already had to change once during this project; this keeps the next change
-  cheap. Rate-limit handling (retry with backoff, request throttle) lives in this wrapper only.
-- **Status:** accepted.
-
-## D7 — Interface: interactive CLI (+ scripted runner for evals)
+## D7 — Interface: interactive CLI (+ scripted runner for evals), then an HTTP API (D23)
 - **Alternatives:** API (FastAPI), notebook, simple web UI.
 - **Rationale:** the statement says the focus is the agent working. A CLI is the fastest to
   reproduce; a non-interactive runner reuses the same agent core to generate the example
-  transcripts. The agent core has no I/O, so a WhatsApp/API front end can be added later.
-- **Status:** proposed.
+  transcripts. The agent core has no I/O, so other front ends are thin wrappers: the HTTP API
+  was added later exactly that way (D23).
+- **Status:** accepted.
 
 ## D8 — Conversation history: in-memory per session, persisted to JSON
 - **Rationale:** multi-turn coherence (e.g. identity verified once, "that one" refers to the last
   product) is part of a good support experience. Persisting to `.conversations/<session>.json`
   allows resuming a chat. Verified identity is session state, never inferred by the model.
-- **Status:** proposed.
+- **Status:** accepted.
 
 ## D9 — Prompt strategy: persona + hard rules + tool-first, low temperature
 - **Rules in the prompt:** reply in pt-BR with the store's tone; never state price, stock, deadline
@@ -114,7 +116,7 @@ or evals, then `accepted`.
 - **Why not rely on the prompt alone:** the critical rules are also enforced in code (identity check
   in the order tools, price/PIX logic, eligibility math), so a prompt failure cannot leak data or
   invent numbers.
-- **Status:** proposed.
+- **Status:** accepted (the guards D17 and D21 came from failures seen live).
 
 ## D10 — Reference time is injected
 - `STORE_TODAY` / `now` is a parameter, default real time in America/Campo_Grande. Examples use a
@@ -125,6 +127,14 @@ or evals, then `accepted`.
 - Order tools require the order id plus the customer's email **or** phone, matched against the order
   owner (discovery D9). Failures return a generic message that does not confirm whether the order exists.
 - **Status:** accepted (privacy rule from manual section 9).
+
+## D12 — Provider-agnostic LLM client
+- **Decision:** one thin wrapper around the OpenAI-compatible chat/embeddings API, configured by
+  `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`, `EMBEDDING_MODEL`. The rest of the code never imports a
+  provider-specific SDK.
+- **Why:** the provider already had to change once during this project; this keeps the next change
+  cheap. Rate-limit handling (retry with backoff, request throttle) lives in this wrapper only.
+- **Status:** accepted.
 
 ## D13 — Business rules are pure Python, resolved once, covered by tests
 - **Decision:** pricing/PIX, installments, freight, return eligibility and opening hours are pure
@@ -194,8 +204,7 @@ or evals, then `accepted`.
 - The CLI sets stdout/stdin to UTF-8, because the default Windows code page garbles accents.
 - The project is pip-installable (`pyproject.toml`, `requirements.txt` = `-e .[dev]`) so a fresh
   clone runs with two commands.
-- **FastAPI:** not built; the agent core has no I/O, so a `/chat` endpoint would be a thin wrapper.
-  Left as a "what I'd do with more time" item.
+- **FastAPI:** built afterwards as a thin wrapper, see D23.
 - **Status:** accepted.
 
 ## D20 — Evals check behavior, not wording
@@ -234,24 +243,43 @@ or evals, then `accepted`.
   repeated runs together do not. Anyone evaluating on a free key should expect this.
 - **Status:** accepted.
 
-## D21 — A claimed action needs the tool call that performs it
-- Live evals showed the model saying "já registrei sua reclamação" (and inventing a ticket number)
-  without calling `escalate_to_human`, in about 1 of 3 runs, although the prompt forbids it.
-- `grounding.unperformed_actions` detects first-person claims ("registrei", "anotei", "abri um
-  chamado", "encaminhei"...) when no `escalate_to_human` call happened in the turn. The agent loop
-  then gives the model one automatic correction request, same mechanism as the amount guard (D17);
-  the rejected draft is dropped from the history, and a persistent claim is reported in the turn result.
-- Result: the complaint scenario went from 2/3 to 5/5 live runs.
-- **Limit:** a phrase list; it will not catch every wording.
+## D23 — HTTP API: a thin FastAPI wrapper over the same agent
+- **Why:** a customer-facing channel (web widget, WhatsApp webhook) speaks HTTP, not a terminal. The
+  agent core already does no I/O (D7), so `api.py` only moves text in and out; no rule was duplicated.
+- **Contract:** `POST /chat {message, session_id?}` returns `{session_id, reply, tools, failed}`;
+  `GET /health`. Run with `uvicorn emporio_agent.api:create_app --factory`.
+- **Session id is the credential.** Verified identity lives in the session (D16), so whoever holds the
+  id continues a verified conversation. API sessions therefore use a full 128-bit random id (the CLI's
+  8 characters are not enough once the id travels over a network), unknown or malformed ids get a 404
+  (the client cannot pick its own id, and `../x` never reaches the file system).
+- **Concurrency:** the endpoint is a plain `def`, so FastAPI runs it in a worker thread and a slow LLM
+  call does not stall other customers; a per-session lock stops two messages of one chat from
+  interleaving. Sessions are persisted exactly like the CLI (after a completed turn, never after a failed one).
+- **Failure:** a provider failure is HTTP 503 (clients can retry) and the body still carries the
+  customer-facing fallback text.
+- **Not built, on purpose:** authentication of the channel itself, rate limiting per customer, and
+  eviction of idle sessions from memory. Those belong to the deployment (API gateway, WhatsApp
+  provider signature check) and are listed in the README limitations.
+- **Verified:** 12 offline tests with a scripted model, plus one real request against the Gemini
+  free tier (tool called, grounded answer).
 - **Status:** accepted.
 
-## D22 — Pacing the provider: 15 requests/minute and 500 requests/day on the free tier
-- **Measured on 2026-11-03:** `gemini-3.5-flash-lite` answers 429 above **15 chat requests per
-  minute** and, after about 500 requests, **for the rest of the day** ("retry in 11h41m"). The phase 0
-  burst (12 in a row) was below the minute limit. The daily limit was exhausted by development and
-  eval runs, which blocked the last full eval run.
-- `RateLimiter` in `llm.py` keeps chat calls under `LLM_MAX_RPM` (default 12) with a sliding window,
-  so a minute-limit 429 is avoided instead of recovered from. It cannot help with the daily limit.
-- A full eval pass costs roughly 130 requests; the whole suite fits in one day, development and
-  repeated runs together do not. Anyone evaluating on a free key should expect this.
-- **Status:** accepted.
+## D24 — Production: a paid model, with cost as a constraint
+- **Why not the free tier in production:** 15 requests/minute and about 500/day (D22) cannot serve a
+  real store, and free-tier terms on availability and on how customer messages may be used differ from paid ones
+  (to be checked against the provider's terms, since conversations hold customer data). A paid tier
+  of the same provider is the lowest-risk change: only `.env` changes (D12).
+- **Cost is a design input, not an afterthought.** What keeps the bill small:
+  - the arithmetic and policy rules are code, so the model never needs to be a "big" reasoning model;
+  - a `flash-lite`-class model is the default; a larger one is only worth it if evals show failures
+    the small one cannot fix (the same eval suite is the gate, D20);
+  - at most `MAX_STEPS` = 6 model calls per message, and one automatic retry per guard;
+  - the system prompt is identical across turns, so provider-side prompt caching applies where offered;
+  - embeddings are computed once and cached on disk (D5).
+- **Cost model:** a turn costs 2-4 chat requests (tool call, then answer), and a full eval pass about
+  130 requests (D22). Multiply the tokens logged per turn by the provider's current price list to get
+  cost per conversation; that number is to be measured before launch, not assumed here.
+- **Before launch:** log tokens per turn, set a monthly budget alert and a per-session message cap,
+  and re-run the evals on the chosen paid model. Switching models is a configuration change plus an
+  eval run, never a code change.
+- **Status:** proposed (a plan, not implemented: this prototype runs on the free tier).

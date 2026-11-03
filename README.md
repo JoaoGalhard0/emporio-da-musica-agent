@@ -58,6 +58,23 @@ python -m emporio_agent                          interactive chat (commands: /ne
 Sessions and escalation tickets are written to `.conversations/` (git-ignored: they hold customer data).
 On Windows set `PYTHONUTF8=1` if accents look garbled in other tools; the CLI already switches to UTF-8.
 
+**HTTP API.** The same agent is available over HTTP for a web widget or a WhatsApp webhook
+([D23](docs/decisions.md)):
+
+```bash
+uvicorn emporio_agent.api:create_app --factory --port 8000
+```
+
+```bash
+curl -X POST localhost:8000/chat -H "Content-Type: application/json"      -d '{"message": "Quanto custa o Takamine GD20?"}'
+# {"session_id": "9f2c...", "reply": "...", "tools": ["search_products"], "failed": false}
+# send "session_id" back in the next request to continue the conversation; GET /health for a liveness check
+```
+
+The session id is the only credential of a conversation, so it is a 128-bit random value; an unknown id is a
+404 and a provider failure is a 503 (the body still carries the customer-facing text). Interactive docs at
+`/docs`.
+
 ## Try it
 
 The dataset is historical (orders run from Oct 2025 to Mar 2026), so the demos fix the store clock with
@@ -116,7 +133,7 @@ The agent core does no I/O, so a WhatsApp webhook or an HTTP API would be a thin
 
 ## Technical decisions
 
-Full rationale, alternatives and measurements are in [`docs/decisions.md`](docs/decisions.md) (D1–D22); the
+Full rationale, alternatives and measurements are in [`docs/decisions.md`](docs/decisions.md) (D1–D24); the
 data and policy findings behind them are in [`docs/discovery.md`](docs/discovery.md). The short version:
 
 | Decision | Choice | Why |
@@ -128,9 +145,10 @@ data and policy findings behind them are in [`docs/discovery.md`](docs/discovery
 | **Prompt strategy** | English prompt: persona, tone, tool-first rule, scope, privacy, complaint handling; low temperature; store clock injected every turn | The prompt makes the model behave; the code makes it safe when it does not. Rules that matter are enforced twice. Reply language is pt-BR. |
 | **Identity (LGPD)** | Order access needs order number + e-mail or phone of the owner; state is held by the code; locks after 3 failures | Two customers share an e-mail (11 and 43), so e-mail alone cannot prove ownership; "no such order" and "wrong contact" give the identical answer so order numbers cannot be probed ([D16](docs/decisions.md)). |
 | **Guards** | Amount grounding and unperformed-action checks, each with one automatic retry | The amount check enforces manual section 7.1 preventively (it never fired in live runs). The action check exists because the failure *was* seen live: "já registrei sua reclamação" with no ticket, about 1 run in 3 ([D17, D21](docs/decisions.md)). |
-| **Interface** | Interactive CLI + scripted runner | The task says the focus is the agent working; a CLI reproduces fastest, and script mode generates the example transcripts. |
+| **Interface** | Interactive CLI + scripted runner, plus a FastAPI `/chat` endpoint | The task says the focus is the agent working; a CLI reproduces fastest, and script mode generates the example transcripts. The agent core does no I/O, so the HTTP API is a thin wrapper with no duplicated rules ([D7, D23](docs/decisions.md)). |
 | **History** | In-memory per session, saved to JSON after each completed turn, `--resume` | Multi-turn coherence (identity verified once, "that one") matters for support; a failed turn is never saved ([D8, D18](docs/decisions.md)). |
-| **Data handling** | stdlib `csv` into typed dataclasses; `Decimal` money; UTF-8; reference checks that fail loudly; data-quality notes | 65 products and 20 orders do not justify pandas or a database; fewer dependencies means an easier setup. Stored order totals are reported as-is, never recomputed. |
+| **Data handling** | stdlib `csv` into typed dataclasses; `Decimal` money; UTF-8; reference checks that fail loudly; data-quality notes | 65 products and 20 orders do not justify pandas or a database; fewer dependencies means an easier setup. Both come back with scale (see "With more time"). Stored order totals are reported as-is, never recomputed. |
+| **Production model and cost** | Planned, not implemented: a paid tier of the same provider, chosen with cost as a constraint | The free tier (15/min, ~500/day) cannot serve a real store. Rules live in code, so a lite-class model is enough; token use per turn is logged, budget alerts and per-session caps are set, and any larger model must earn its price in the eval suite ([D24](docs/decisions.md)). |
 
 ## Assumptions
 
@@ -157,7 +175,7 @@ The statement allows assuming and documenting. These are the ones that change be
 
 ## Tests and evals
 
-**Offline tests (144, no network):** `pytest`. They cover the data layer against the discovery findings, every
+**Offline tests (156, no network):** `pytest`. They cover the data layer against the discovery findings, every
 business rule at its boundaries, policy chunking and retrieval, tool behavior and identity checks, the agent loop
 with a scripted model, the CLI, the rate limiter, and the eval framework itself.
 
@@ -184,6 +202,9 @@ What the evals found, and what they did not finish (honest account):
 ## Known limitations
 
 - **Free-tier quota** (15/min, ~500/day) limits how much anyone can test; latency varies from 1 to 17 s.
+- **The HTTP API has no channel authentication, per-customer rate limit or idle-session eviction** (sessions stay in
+  memory until restart; saved ones reload from disk). Those belong to the deployment: API gateway, the WhatsApp
+  provider's signature check.
 - **The guards are narrow:** amounts are checked, dates and percentages are not; action claims use a phrase list.
 - **Return windows** rely on the estimated delivery as a proxy for receipt (data limitation).
 - **Shipping outside Campo Grande** cannot be priced without a CEP; only carriers and lead times are given.
@@ -201,7 +222,14 @@ What the evals found, and what they did not finish (honest account):
 
 ## With more time
 
-- A FastAPI `/chat` endpoint and a WhatsApp webhook around `Agent.reply` (the core is already I/O-free).
+- A WhatsApp webhook next to the existing `/chat` endpoint, with channel authentication and a per-customer rate limit.
+- **Production model, with cost in view:** move to a paid tier of the same provider (only `.env` changes), keep a
+  lite-class model as the default, log tokens per turn, set a budget alert and a per-session cap, and let a larger
+  model in only if the evals show failures the small one cannot fix ([D24](docs/decisions.md)).
+- **Scale the data layer:** pandas for analytics over thousands of rows, then SQLite/Postgres once stock and
+  orders change during the day or are written by several users. Only the loaders change, because the tools use `Store`.
+- **Scale retrieval:** a vector database (pgvector, Qdrant) once the policy corpus is thousands of chunks, is
+  updated live or needs metadata filters; with 25 chunks an on-disk embedding cache is exact and free.
 - Extend the grounding guard to dates, percentages and deadlines; replace the phrase list with a classifier.
 - LLM-as-judge evals for tone and correctness on top of the behavior checks, and a larger retrieval test set.
 - A real handoff to a ticketing system, and a state/municipal holiday calendar.
@@ -225,10 +253,13 @@ proposed, implemented and ran things. Each phase ended with tests, a commit and 
 | 6–7 | **Provider change** and model choice | Researched the free tier, proposed a provider-agnostic client, measured 6 models | OpenAI had no credits: Gemini free tier; accepted the measured model |
 | 8–9 | Data layer and business rules | Typed loaders, pure rules, 45 tests | Section 3.1 wins over the table; the 30/90-day defect split; strictly-above R$ 500 |
 | 10 | Policy retrieval | Section chunker, hybrid search, measured it | Kept the hybrid because of the paraphrase result |
-| 10 | Architecture question | Said plainly that this is layered, **not** Clean Architecture or FastAPI | Keep it pragmatic; FastAPI left for later |
+| 10 | Architecture question | Said plainly that this is layered, **not** Clean Architecture or FastAPI | Keep it pragmatic; FastAPI deferred (built later, step 15) |
 | 11 | Tools, identity, loop, prompt | 9 tools, grounding guard, 48 tests, live smoke runs | Prompt in English |
 | 12–13 | CLI and evals | CLI, scripted runner, 27 scenarios, example transcripts | Publish examples only from fully passing runs |
 | 14 | Final live round | Found the hallucinated registration; added guards and a rate limiter | Approved the fixes; the quota stopped the last full pass |
+| 15 | Review of my justifications | Judged them sound, found a duplicated decision section, an out-of-order one and five stale statuses | Pandas and a vector DB go to "what comes next"; replace CLI-only with an endpoint; paid model in production, with cost kept viable |
+| 16 | HTTP API | FastAPI `/chat` and `/health`, 12 tests, a real request; chose a 128-bit session id | Asked for it; confirmed the id choice |
+| 17 | Final check-up | Re-read the code, ran tests and lint, found that its own API made the rate limiter unsafe across threads, fixed it with a test | Kept stylistic lint hints out of tested code on delivery day |
 
 **Where the AI was wrong, and what caught it.** Writing this down is part of the point: the AI made real
 mistakes, and tests, evals or reading the output caught them.
@@ -242,6 +273,9 @@ mistakes, and tests, evals or reading the output caught them.
 - Scripted text replacements silently did nothing (twice); I moved to the Edit tool, which fails loudly.
 - It said an order "shipped on 15/02" (the order date) and claimed to have registered things it had not.
   Reading the transcripts caught the first; the live evals caught the second.
+- The HTTP API ran the model client from several threads while the rate limiter assumed one; the re-read
+  after building the API caught it, and it now has a lock and a test.
+- A first real API request failed with HTTP 400 and I blamed the API; the shell's `curl` had mangled an accent.
 - A full eval pass was started with `--fresh`, which destroyed the accumulated results file. That was the
   assistant's mistake and it is logged as such.
 
@@ -258,11 +292,11 @@ lightweight harness: someone new (human or agent) can read `CLAUDE.md`, then `do
 
 ```text
 src/emporio_agent/
-  cli.py agent.py toolbox.py tool_schemas.py prompts.py grounding.py session.py llm.py config.py
+  cli.py api.py agent.py toolbox.py tool_schemas.py prompts.py grounding.py session.py llm.py config.py
   data/        CSV loading, typed models, text helpers
   logic/       pricing, payment, shipping, returns, store hours (pure functions)
   policies/    PDF chunker, hybrid retriever
-tests/         offline unit tests (144)          evals/        live behavior evals (27 scenarios)
+tests/         offline unit tests (156)          evals/        live behavior evals (27 scenarios)
 examples/      5 real conversations               docs/         requirements, discovery, decisions, ai-workflow, plan
 data/          the store's CSVs and policies PDF  CLAUDE.md     project context for AI assistants
 ```

@@ -13,6 +13,18 @@ Sonnet 5.5 (high effort) for implementation.
 | 3 | Repository setup and docs structure | Sonnet 5.5 (initial session) |
 | 4 | Language correction (English everywhere) | Sonnet 5.5 |
 | 5 | Discovery, requirements traceability and implementation plan | Sonnet 5.5 (see note) |
+| 6 | Provider change (OpenAI to Gemini free tier) | Sonnet 5.5 |
+| 7 | Phase 0: environment and model choice | Sonnet 5.5 |
+| 8 | Phase 1: data layer | Sonnet 5.5 |
+| 9 | Phase 2: business rules | Sonnet 5.5 |
+| 10 | Phase 3: policy retrieval | Sonnet 5.5 |
+| 11 | Phase 4: tools, identity, agent loop and prompt | Sonnet 5.5 |
+| 12 | Phase 5: CLI, resume and scripted runner | Sonnet 5.5 |
+| 13 | Phase 6: evals and example conversations | Sonnet 5.5 |
+| 14 | Final live eval round | Sonnet 5.5 |
+| 15 | Pre-submission review of my justifications, and the doc fixes it led to | Sonnet 5.5 |
+| 16 | HTTP API (FastAPI), requested after the review | Sonnet 5.5 |
+| 17 | Final docs and code check-up, and the bug the API exposed | Sonnet 5.5 |
 
 > Note: the initial steps ran in the first session, before I fixed the model policy above.
 
@@ -170,26 +182,6 @@ Sonnet 5.5 (high effort) for implementation.
 - **I asked:** one more live round, then report before moving on.
 - **What the round found (real agent flaws, not eval noise):**
   - In `complaint_escalation` the agent said "já registrei a sua reclamação" and invented a ticket
-    number without calling the tool, 1 time in 3. Fixed in code (D21): the run went to 5/5 afterwards.
-  - The agent called the order tool before having the customer's contact. A stricter prompt line fixed
-    it; the published example 03 no longer shows that call.
-  - Provider limits were the real bottleneck: 15 requests/minute (a run in the middle of batch E got
-    429 on every turn) and then the 500/day cap. Added a rate limiter (D22).
-- **What I could not complete:** a full pass of all 27 scenarios on the *final* code. Before the last
-  two fixes (D21, D22), batches A-C passed 27/27 and batches D-E passed except the failures above. After
-  them, only targeted runs were possible: complaint 5/5, then the daily quota ran out.
-- **A mistake of mine:** I started the last full pass with `--fresh`, which discarded the accumulated
-  `evals/results.json`; the quota failure then overwrote it with provider errors. I deleted that
-  polluted report rather than keep numbers that describe the outage, not the agent. There is no
-  consolidated eval report in the repo, and I did not reconstruct one by hand.
-- **Not mine:** an `AGENTS.md` (copy of `CLAUDE.md`) appeared at 17:02 from something other than this
-  session; left untracked.
-- **Model note:** Sonnet 5.5.
-
-## Step 14 — Final live eval round, and what it did not finish
-- **I asked:** one more live round, then report before moving on.
-- **What the round found (real agent flaws, not eval noise):**
-  - In `complaint_escalation` the agent said "já registrei a sua reclamação" and invented a ticket
     number without calling the tool, 1 time in 3. Fixed in code (D21); the scenario then passed 5/5.
   - The agent called the order tool before having the customer's contact. A stricter prompt line fixed
     it; the published example 03 no longer shows that call.
@@ -203,4 +195,52 @@ Sonnet 5.5 (high effort) for implementation.
   polluted report rather than keep numbers that describe the outage, not the agent. There is no
   consolidated eval report in the repo, and I did not reconstruct one by hand.
 - **Not from this session:** an `AGENTS.md` (copy of `CLAUDE.md`) appeared at 17:02; left untracked.
+- **Model note:** Sonnet 5.5.
+
+## Step 15 — Pre-submission review of my justifications
+- **I asked:** whether everything was in order to submit, whether the submission format matched what the
+  hiring email required, and then whether my justifications were good.
+- **AI did:** compared the repo with the email and form. Found that the form's first part wants a PDF of the
+  README and documentation, which did not exist yet. Read the README decision table and `decisions.md` and
+  judged them sound (alternatives, measured choices, honest limits), while listing real defects: D21 and D22
+  were duplicated at the end of `decisions.md`, and D12 sat out of order after D6. It also pointed at the
+  weakest justification (CLI as the only interface) and at the missing note on production cost.
+- **Corrections that came out of it, all found by reading the documents, not by a test:**
+  - removed the duplicated D21/D22 and put D12 back in numeric order (reordering instead of renumbering,
+    so no reference in code, tests or docs broke);
+  - five decisions (D2, D4, D7, D8, D9) were still `proposed` although the traceability table said
+    `accepted`; moved them to `accepted` with what validated them;
+  - Step 14 of this log was duplicated; kept the later, more careful wording.
+- **I decided:** pandas and a vector database belong in "what comes next" with the trigger that would
+  justify each; the CLI-only interface should be replaced by an endpoint; production would use a paid model
+  but only with cost kept viable. Those were my calls, the AI had only flagged the gaps.
+- **Model note:** Sonnet 5.5.
+
+## Step 16 — HTTP API
+- **I asked:** to build the endpoint instead of defending the CLI.
+- **AI did:** `api.py` with FastAPI (`POST /chat`, `GET /health`) as a thin wrapper over `Agent.reply`, 12
+  offline tests with a scripted model, and one real request against the provider. Wrote D23.
+- **Decision the AI made, for me to confirm:** the API session id is 128-bit (the CLI keeps 8 characters)
+  because the id is the only credential of a verified conversation; unknown or malformed ids are 404, so an
+  id can neither be chosen by the client nor become a path like `../x`.
+- **A false alarm of mine:** the first real request returned HTTP 400. I suspected the API; the cause was the
+  shell's `curl` mangling the accent in `endereço`. Sending the same JSON from Python returned 200. Noted
+  because it cost a few minutes and nothing in the code was wrong.
+- **Model note:** Sonnet 5.5.
+
+## Step 17 — Final check-up, and a bug the API exposed
+- **I asked:** for a general check of all docs and code, plus the paid-model-with-cost note.
+- **AI did:** ran the tests and `ruff`, and re-read the modules touched by the new front end.
+- **A mistake of the AI, caught by that re-read:** the API made the model client run from several threads,
+  but `RateLimiter` was written for one. Two threads could mutate its call window at once and break the
+  15-requests-per-minute pacing that keeps the free tier alive. No test had caught it because nothing
+  concurrent existed before Step 16. Fixed with a lock (sleeping inside the lock is intended, later callers
+  queue behind it) and a test with 20 threads.
+- **Also found:** an unused import in `evals/run_evals.py`. Stylistic lint hints (`collections.abc`,
+  `zip(strict=)`) were left alone: no behavior change, and I did not want to touch tested code on the day
+  of delivery.
+- **Wrote D24** (paid model in production: lite-class by default, token logging, budget alert, per-session cap,
+  larger model only if the evals justify it). The AI refused to write a cost-per-conversation number it could
+  not verify, so D24 says that figure has to be measured against the provider's current price list.
+- **Still not done:** the full live eval pass on the final code (daily quota, see Step 14).
 - **Model note:** Sonnet 5.5.
