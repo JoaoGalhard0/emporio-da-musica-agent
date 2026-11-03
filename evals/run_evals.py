@@ -20,7 +20,7 @@ from pathlib import Path
 from framework import IMPLICIT, Ctx, Observed, Scenario
 from scenarios import SCENARIOS
 
-from emporio_agent.agent import Agent, ToolCallTrace
+from emporio_agent.agent import Agent
 from emporio_agent.cli import Turn, build_agent, to_markdown
 from emporio_agent.config import STORE_TZ, store_now
 from emporio_agent.session import Session
