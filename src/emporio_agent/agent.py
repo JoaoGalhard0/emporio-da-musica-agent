@@ -8,7 +8,7 @@ from typing import Callable, Protocol
 
 from emporio_agent.config import store_now
 from emporio_agent.data.store import Store
-from emporio_agent.grounding import ungrounded_amounts
+from emporio_agent.grounding import ungrounded_amounts, unperformed_actions
 from emporio_agent.policies.retriever import PolicyRetriever
 from emporio_agent.prompts import build_system_prompt
 from emporio_agent.session import Session
@@ -27,9 +27,9 @@ _TOO_MANY_STEPS = (
     "A gente responde em até 24 horas úteis."
 )
 _NUDGE = (
-    "[automatic check] Your draft quotes these amounts that no tool returned and the customer did not "
-    "mention: {amounts}. Call the right tool to get real values, or rewrite the answer without those "
-    "amounts. Do not do arithmetic on prices yourself."
+    "[automatic check] Your draft has a problem: {problems}. Call the right tool, or rewrite the answer "
+    "without it. Do not do arithmetic on prices yourself, and never say something was registered or "
+    "sent unless a tool call in this turn did it."
 )
 
 
@@ -49,6 +49,7 @@ class TurnResult:
     text: str
     tool_calls: list[ToolCallTrace] = field(default_factory=list)
     ungrounded: list[str] = field(default_factory=list)  # amounts quoted without a source, after the retry
+    unperformed: list[str] = field(default_factory=list)  # claimed actions no tool performed, after the retry
     failed: bool = False
 
 
@@ -86,11 +87,19 @@ class Agent:
                            if m.get("role") in ("tool", "user") and m is not nudge
                            and isinstance(m.get("content"), str)]
                 loose = ungrounded_amounts(text, sources)
-                if loose and draft_at is None:
-                    listing = ", ".join(f"R$ {a}" for a in sorted(loose))
-                    log.info("Ungrounded amounts in draft, asking the model to fix: %s", listing)
+                claimed = unperformed_actions(text, [t.name for t in trace])
+                if (loose or claimed) and draft_at is None:
+                    problems = []
+                    if loose:
+                        listing = ", ".join(f"R$ {a}" for a in sorted(loose))
+                        problems.append(f"it quotes amounts that no tool returned and the customer did not "
+                                        f"mention ({listing})")
+                    if claimed:
+                        problems.append(f"it says an action was done ({', '.join(claimed)}) but no tool "
+                                        "call in this turn did it")
+                    log.info("Draft rejected, asking the model to fix: %s", "; ".join(problems))
                     draft_at = len(turn)
-                    nudge = {"role": "user", "content": _NUDGE.format(amounts=listing)}
+                    nudge = {"role": "user", "content": _NUDGE.format(problems="; ".join(problems))}
                     turn.extend([message, nudge])
                     continue
 
@@ -99,7 +108,7 @@ class Agent:
                     del turn[draft_at : draft_at + 2]
                 turn.append({"role": "assistant", "content": text})
                 session.messages.extend(turn)
-                return TurnResult(text, trace, [f"R$ {a}" for a in sorted(loose)])
+                return TurnResult(text, trace, [f"R$ {a}" for a in sorted(loose)], unperformed=claimed)
         except Exception:
             log.exception("LLM call failed")
             return TurnResult(_UNAVAILABLE, trace, failed=True)

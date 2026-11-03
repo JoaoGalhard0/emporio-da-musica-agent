@@ -4,16 +4,14 @@ _Store clock: 20/02/2026 10:00 (America/Campo_Grande) · Model: `gemini-3.5-flas
 
 **Customer:** Me arrependi da minha compra, posso devolver meu pedido?
 
-**Assistant:** Com certeza, posso te ajudar a verificar isso! 
-
-Para que eu possa consultar as regras e prazos para o seu caso, por favor, me informe o *número do pedido* e o *e-mail ou telefone* cadastrado na compra. 🎸
+**Assistant:** Com certeza! Para eu verificar se o seu pedido está no prazo de devolução por arrependimento, por favor me informe o *número do pedido* e o *e-mail ou telefone* cadastrado na compra. 🎸
 
 **Customer:** É o pedido 7, meu e-mail é leticia.rocha@jmail.com
 
 > 🔧 `check_return_eligibility({"contact":"leticia.rocha@jmail.com","order_id":7,"reason":"regret"})`
 
-**Assistant:** Leticia, verifiquei aqui e o seu pedido é elegível para devolução por arrependimento! Como você recebeu o produto em 17/02/2026, o prazo limite vai até 24/02/2026 (ainda restam 4 dias).
+**Assistant:** Leticia, boas notícias! O seu pedido é elegível para devolução por arrependimento. 
 
-Para realizar a devolução, o produto precisa estar na embalagem original, sem uso, com todos os acessórios e manuais. O reembolso é feito no valor integral pelo mesmo método de pagamento em até 10 dias úteis, e o frete de devolução é pago pela loja.
+Você está dentro do prazo, que vai até 24/02/2026. O produto precisa estar na embalagem original, sem uso, com todos os acessórios e manuais. O reembolso é integral na forma de pagamento original em até 10 dias úteis e o frete de devolução é por nossa conta.
 
-Como você deseja prosseguir, quer que eu inicie o processo de devolução para você? 🎸
+Quer que eu abra uma solicitação para a nossa equipe dar andamento no processo?

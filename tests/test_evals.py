@@ -18,7 +18,7 @@ def store():
 
 def obs(text="", tools=(), session=None, ungrounded=(), failed=False, so_far=None):
     trace = [ToolCallTrace(n, "{}", "{}") for n in tools]
-    result = TurnResult(text, trace, list(ungrounded), failed)
+    result = TurnResult(text, trace, ungrounded=list(ungrounded), failed=failed)
     return fw.Observed("pergunta", result, session or Session(), so_far if so_far is not None else trace)
 
 

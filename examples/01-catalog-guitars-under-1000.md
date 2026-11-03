@@ -6,14 +6,15 @@ _Store clock: 20/02/2026 10:00 (America/Campo_Grande) · Model: `gemini-3.5-flas
 
 > 🔧 `search_products({"category":"Violões","max_price":1000})`
 
-**Assistant:** Temos várias opções legais de violões até R$ 1.000,00! Como há mais modelos disponíveis além dos que aparecem aqui, você prefere cordas de nylon ou de aço? 
+**Assistant:** Temos várias opções legais de violões até R$ 1.000,00! Como temos mais modelos além desses, se quiser, me conte se prefere cordas de nylon ou aço para eu te mostrar as melhores opções. Olha alguns dos que temos disponíveis:
 
-Aqui estão alguns destaques:
-- Tagima Memphis AC-39 Nylon Natural - R$ 429,90 (ou R$ 408,41 no PIX)
-- Rozini RC-104 Nylon Estudante - R$ 459,90 (ou R$ 436,91 no PIX)
-- Shelby SN-100 Folk Aço Preto - R$ 549,00 (ou R$ 521,55 no PIX)
-- Giannini GF-1R Aço Folk Sunburst - R$ 579,90 (ou R$ 550,91 no PIX)
-- Yamaha C40 Nylon Natural - R$ 599,90 (ou R$ 569,91 no PIX)
-- Giannini GN-15 Nylon Cedr Natural - R$ 689,00 (ou R$ 654,55 no PIX)
-- Yamaha F310 Aço Natural - R$ 699,90 (ou R$ 664,91 no PIX)
-- Tagima Dallas Tuner Aço Natural - R$ 749,00 (ou R$ 711,55 no PIX)
+- *Tagima Memphis AC-39 Nylon Natural*: R$ 429,90 (ou R$ 408,41 no PIX)
+- *Rozini RC-104 Nylon Estudante*: R$ 459,90 (ou R$ 436,91 no PIX)
+- *Shelby SN-100 Folk Aço Preto*: R$ 549,00 (ou R$ 521,55 no PIX)
+- *Giannini GF-1R Aço Folk Sunburst*: R$ 579,90 (ou R$ 550,91 no PIX)
+- *Yamaha C40 Nylon Natural*: R$ 599,90 (ou R$ 569,91 no PIX)
+- *Giannini GN-15 Nylon Cedr Natural*: R$ 689,00 (ou R$ 654,55 no PIX)
+- *Yamaha F310 Aço Natural*: R$ 699,90 (ou R$ 664,91 no PIX)
+- *Tagima Dallas Tuner Aço Natural*: R$ 749,00 (ou R$ 711,55 no PIX)
+
+Quer saber mais detalhes sobre algum deles ou ver as opções de parcelamento?

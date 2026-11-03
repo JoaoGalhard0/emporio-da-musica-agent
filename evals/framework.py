@@ -10,6 +10,7 @@ from typing import Callable
 from emporio_agent.agent import ToolCallTrace, TurnResult
 from emporio_agent.data.store import Store
 from emporio_agent.data.text import normalize
+from emporio_agent.grounding import unperformed_actions
 from emporio_agent.session import Session
 
 _EMOJI = re.compile("[\U0001F300-\U0001FAFF☀-➿]")
@@ -105,15 +106,10 @@ def tool_arg(tool: str, key: str, expected) -> Check:
     return Check(f"{tool}({key}={expected!r})", fn)
 
 
-# First-person claims of a completed action. Only escalate_to_human performs one (ticket registration),
-# so such a claim without that call in the same turn is the agent promising something it did not do.
-_ACTION_CLAIMS = ("registrei", "anotei", "abri um chamado", "abri um atendimento", "abri o chamado",
-                  "abri uma solicitacao", "enviei", "encaminhei")
-
-
 def _claims_action_without_tool(o: Observed) -> bool:
-    claimed = any(c in o.reply for c in _ACTION_CLAIMS)
-    return claimed and "escalate_to_human" not in o.step_tools
+    """Independent check of the final reply, using the same phrase list as the agent's own guard:
+    the guard retries once, this verifies that the answer the customer actually saw is clean."""
+    return bool(unperformed_actions(o.result.text, o.step_tools))
 
 
 def _contact_was_typed_by_customer(o: Observed) -> bool:

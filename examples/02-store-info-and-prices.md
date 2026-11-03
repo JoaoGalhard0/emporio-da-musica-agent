@@ -6,9 +6,9 @@ _Store clock: 20/02/2026 10:00 (America/Campo_Grande) · Model: `gemini-3.5-flas
 
 > 🔧 `get_store_info({})`
 
-**Assistant:** Ficamos na *Rua 14 de Maio, 3200 — Centro, Campo Grande/MS*. 
+**Assistant:** Ficamos na Rua 14 de Maio, 3200, no Centro de Campo Grande (MS). 
 
-Estamos abertos hoje até as 18:00! Quer saber mais sobre algum instrumento da loja? 🎸
+Estamos abertos agora até as 18h! Quer saber mais sobre algum instrumento ou conferir nossos produtos? 🎵
 
 **Customer:** Quanto custa o Takamine GD20?
 
@@ -16,16 +16,14 @@ Estamos abertos hoje até as 18:00! Quer saber mais sobre algum instrumento da l
 
 **Assistant:** O *Takamine GD20 Dreadnought Natural* custa *R$ 2.199,00*. 
 
-No PIX, ele sai por *R$ 2.089,05*, ou você pode parcelar em até 12x de R$ 183,25 sem juros no cartão de crédito. Temos 5 unidades em estoque! 
-
-Quer que eu calcule o frete para a sua cidade?
+No PIX, ele sai por *R$ 2.089,05*, ou você pode parcelar em até *12x de R$ 183,25 sem juros* no cartão de crédito! Temos 5 unidades em estoque. Quer que eu veja as opções de frete para a sua cidade? 🎸
 
 **Customer:** E o ukulele Ohana CK-20? Vi que tá em promoção.
 
 > 🔧 `get_product({"product":"Ohana CK-20"})`
 
-**Assistant:** Sim, ele está com *20% de desconto* na promoção Desconto Exclusivo! 
+**Assistant:** Sim, ele está em promoção! 
 
-O preço original era R$ 549,00 e agora sai por *R$ 439,20*. Você pode parcelar em até 5x de R$ 87,84 sem juros no cartão. 
+O *Ohana CK-20 Concert Natural* está com *20% de desconto*: o preço original era R$ 549,00 e agora sai por *R$ 439,20*. Você pode parcelar em até *5x de R$ 87,84 sem juros* no cartão de crédito. 
 
-Temos 6 unidades disponíveis. Quer que eu veja o frete para você?
+Temos 6 unidades disponíveis em estoque. Quer que eu verifique o frete para você? 🎶

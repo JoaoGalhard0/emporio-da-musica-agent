@@ -4,16 +4,14 @@ _Store clock: 20/02/2026 10:00 (America/Campo_Grande) · Model: `gemini-3.5-flas
 
 **Customer:** Cadê meu pedido 8? Já faz uns dias.
 
-> 🔧 `get_order_status({"order_id":8})`
-
-**Assistant:** Para eu conseguir verificar o status do pedido 8, você poderia me informar o e-mail ou o telefone cadastrado na compra? 🎸
+**Assistant:** Para eu consultar o status do seu pedido 8, você pode me informar o e-mail ou o telefone cadastrado na compra, por favor?
 
 **Customer:** Meu e-mail é anacarol.ferreira@coldmail.com
 
 > 🔧 `get_order_status({"contact":"anacarol.ferreira@coldmail.com","order_id":8})`
 
-**Assistant:** Oi, Ana! O seu pedido 8 (um ukulele *Kala KA-C Concert Mogno*) já foi enviado! 
+**Assistant:** Oi Ana! Seu pedido 8 (Kala KA-C Concert Mogno) está com o status *enviado*! 
 
-O código de rastreio é o *BRJL5544332BR* e você pode acompanhar a entrega no site dos Correios ou da Jadlog. A previsão de entrega é para o dia 28/02/2026. 
+O código de rastreio é o *BRJL5544332BR* e a previsão de entrega é para o dia *28/02/2026*. Você pode acompanhar o envio pelo site dos Correios ou da Jadlog. 
 
-Quer ajuda com mais alguma coisa?
+Posso ajudar com mais alguma coisa?

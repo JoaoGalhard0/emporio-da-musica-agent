@@ -165,3 +165,42 @@ Sonnet 5.5 (high effort) for implementation.
 - **Open issue found in the published example 03:** the agent still makes that harmless early tool call
   without a contact. Candidate fix: a stricter prompt line, to be validated with a live run.
 - **Model note:** Sonnet 5.5.
+
+## Step 14 — Final live eval round, and what it did not finish
+- **I asked:** one more live round, then report before moving on.
+- **What the round found (real agent flaws, not eval noise):**
+  - In `complaint_escalation` the agent said "já registrei a sua reclamação" and invented a ticket
+    number without calling the tool, 1 time in 3. Fixed in code (D21): the run went to 5/5 afterwards.
+  - The agent called the order tool before having the customer's contact. A stricter prompt line fixed
+    it; the published example 03 no longer shows that call.
+  - Provider limits were the real bottleneck: 15 requests/minute (a run in the middle of batch E got
+    429 on every turn) and then the 500/day cap. Added a rate limiter (D22).
+- **What I could not complete:** a full pass of all 27 scenarios on the *final* code. Before the last
+  two fixes (D21, D22), batches A-C passed 27/27 and batches D-E passed except the failures above. After
+  them, only targeted runs were possible: complaint 5/5, then the daily quota ran out.
+- **A mistake of mine:** I started the last full pass with `--fresh`, which discarded the accumulated
+  `evals/results.json`; the quota failure then overwrote it with provider errors. I deleted that
+  polluted report rather than keep numbers that describe the outage, not the agent. There is no
+  consolidated eval report in the repo, and I did not reconstruct one by hand.
+- **Not mine:** an `AGENTS.md` (copy of `CLAUDE.md`) appeared at 17:02 from something other than this
+  session; left untracked.
+- **Model note:** Sonnet 5.5.
+
+## Step 14 — Final live eval round, and what it did not finish
+- **I asked:** one more live round, then report before moving on.
+- **What the round found (real agent flaws, not eval noise):**
+  - In `complaint_escalation` the agent said "já registrei a sua reclamação" and invented a ticket
+    number without calling the tool, 1 time in 3. Fixed in code (D21); the scenario then passed 5/5.
+  - The agent called the order tool before having the customer's contact. A stricter prompt line fixed
+    it; the published example 03 no longer shows that call.
+  - Provider limits were the real bottleneck: 15 requests/minute (one run got 429 on every turn) and
+    then the 500/day cap. Added a rate limiter (D22).
+- **What I could not complete:** a full pass of all 27 scenarios on the *final* code. Before the last
+  two fixes (D21, D22), batches A-C passed 27/27 and batches D-E passed except the failures above. After
+  them, only targeted runs were possible (complaint 5/5) before the daily quota ran out.
+- **A mistake of mine:** I started the last full pass with `--fresh`, which discarded the accumulated
+  `evals/results.json`; the quota failure then overwrote it with provider errors. I deleted that
+  polluted report rather than keep numbers that describe the outage, not the agent. There is no
+  consolidated eval report in the repo, and I did not reconstruct one by hand.
+- **Not from this session:** an `AGENTS.md` (copy of `CLAUDE.md`) appeared at 17:02; left untracked.
+- **Model note:** Sonnet 5.5.

@@ -8,7 +8,7 @@ import pytest
 from emporio_agent.agent import MAX_STEPS, Agent
 from emporio_agent.config import STORE_TZ
 from emporio_agent.data.store import Store
-from emporio_agent.grounding import amounts, ungrounded_amounts
+from emporio_agent.grounding import amounts, ungrounded_amounts, unperformed_actions
 from emporio_agent.policies.retriever import PolicyRetriever
 from emporio_agent.session import Session
 from helpers import ScriptedLLM, call, say
@@ -87,6 +87,41 @@ def test_persistent_ungrounded_amount_is_reported_not_hidden(store, retriever, t
     llm = ScriptedLLM(say("R$ 1.999,00"), say("Sim, R$ 1.999,00"))
     result = make_agent(llm, store, retriever, tmp_path).reply(Session(), "Quanto custa?")
     assert result.ungrounded == ["R$ 1999.00"]
+
+
+def test_claimed_action_without_a_tool_call_is_detected():
+    assert unperformed_actions("Já registrei a sua reclamação.", []) == ["registrei"]
+    assert unperformed_actions("Já registrei a sua reclamação.", ["escalate_to_human"]) == []
+    assert unperformed_actions("Posso registrar isso pra você?", []) == []  # an offer, not a claim
+    assert unperformed_actions("Seu chamado já está aberto.", ["get_store_info"]) == []
+
+
+def test_unperformed_action_triggers_a_retry_that_calls_the_tool(store, retriever, tmp_path):
+    llm = ScriptedLLM(
+        say("Já registrei a sua reclamação! Protocolo igual ao anterior."),
+        call("escalate_to_human", {"kind": "complaint", "summary": "Mau atendimento"}),
+        say("Registrei sua reclamação, protocolo abaixo. Retorno em até 24 horas úteis."),
+    )
+    session = Session()
+    result = make_agent(llm, store, retriever, tmp_path).reply(session, "Quero reclamar do atendimento")
+    assert "[automatic check]" in llm.calls[1][-1]["content"] and "no tool call" in llm.calls[1][-1]["content"]
+    assert [t.name for t in result.tool_calls] == ["escalate_to_human"] and result.unperformed == []
+    assert (tmp_path / "esc.jsonl").exists()
+    # The rejected draft and the nudge are not kept; the tool exchange and the final answer are.
+    assert [m["role"] for m in session.messages] == ["user", "assistant", "tool", "assistant"]
+    assert session.messages[-1]["content"] == result.text
+
+
+def test_unperformed_action_that_persists_is_reported(store, retriever, tmp_path):
+    llm = ScriptedLLM(say("Já registrei."), say("Anotei aqui, pode deixar."))
+    result = make_agent(llm, store, retriever, tmp_path).reply(Session(), "pode registrar?")
+    assert result.unperformed == ["anotei"] and not result.failed
+
+
+def test_a_claim_after_the_real_tool_call_is_accepted(store, retriever, tmp_path):
+    llm = ScriptedLLM(call("escalate_to_human", {"kind": "complaint", "summary": "x"}), say("Registrei, tá?"))
+    result = make_agent(llm, store, retriever, tmp_path).reply(Session(), "reclamação")
+    assert len(llm.calls) == 2 and result.unperformed == []
 
 
 def test_amounts_the_customer_mentioned_are_allowed(store, retriever, tmp_path):

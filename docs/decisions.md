@@ -211,3 +211,47 @@ or evals, then `accepted`.
   semantic error, which is why the example transcripts were also read by a human (see ai-workflow).
 - **Examples are published only from runs that passed every check**, unedited, by the runner itself.
 - **Status:** accepted.
+
+## D21 — A claimed action needs the tool call that performs it
+- Live evals showed the model saying "já registrei sua reclamação" (and inventing a ticket number)
+  without calling `escalate_to_human`, in about 1 of 3 runs, although the prompt forbids it.
+- `grounding.unperformed_actions` detects first-person claims ("registrei", "anotei", "abri um
+  chamado", "encaminhei"...) when no `escalate_to_human` call happened in the turn. The agent loop
+  then gives the model one automatic correction request, same mechanism as the amount guard (D17);
+  the rejected draft is dropped from the history, and a persistent claim is reported in the turn result.
+- Result: the complaint scenario went from 2/3 to 5/5 live runs.
+- **Limit:** a phrase list; it will not catch every wording.
+- **Status:** accepted.
+
+## D22 — Pacing the provider: 15 requests/minute and 500 requests/day on the free tier
+- **Measured on 2026-11-03:** `gemini-3.5-flash-lite` answers 429 above **15 chat requests per
+  minute** and, after about 500 requests, **for the rest of the day** ("retry in 11h41m"). Earlier
+  phase 0 numbers (12 in a row) were below the minute limit. The daily limit was exhausted by development
+  and eval runs, which blocked the last full eval run.
+- `RateLimiter` in `llm.py` keeps chat calls under `LLM_MAX_RPM` (default 12) with a sliding window,
+  so a minute-limit 429 is avoided instead of recovered from. It cannot help with the daily limit.
+- A full eval pass costs roughly 130 requests; the whole suite fits in one day, development and
+  repeated runs together do not. Anyone evaluating on a free key should expect this.
+- **Status:** accepted.
+
+## D21 — A claimed action needs the tool call that performs it
+- Live evals showed the model saying "já registrei sua reclamação" (and inventing a ticket number)
+  without calling `escalate_to_human`, in about 1 of 3 runs, although the prompt forbids it.
+- `grounding.unperformed_actions` detects first-person claims ("registrei", "anotei", "abri um
+  chamado", "encaminhei"...) when no `escalate_to_human` call happened in the turn. The agent loop
+  then gives the model one automatic correction request, same mechanism as the amount guard (D17);
+  the rejected draft is dropped from the history, and a persistent claim is reported in the turn result.
+- Result: the complaint scenario went from 2/3 to 5/5 live runs.
+- **Limit:** a phrase list; it will not catch every wording.
+- **Status:** accepted.
+
+## D22 — Pacing the provider: 15 requests/minute and 500 requests/day on the free tier
+- **Measured on 2026-11-03:** `gemini-3.5-flash-lite` answers 429 above **15 chat requests per
+  minute** and, after about 500 requests, **for the rest of the day** ("retry in 11h41m"). The phase 0
+  burst (12 in a row) was below the minute limit. The daily limit was exhausted by development and
+  eval runs, which blocked the last full eval run.
+- `RateLimiter` in `llm.py` keeps chat calls under `LLM_MAX_RPM` (default 12) with a sliding window,
+  so a minute-limit 429 is avoided instead of recovered from. It cannot help with the daily limit.
+- A full eval pass costs roughly 130 requests; the whole suite fits in one day, development and
+  repeated runs together do not. Anyone evaluating on a free key should expect this.
+- **Status:** accepted.

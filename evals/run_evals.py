@@ -8,6 +8,7 @@ Writes transcripts to evals/transcripts/ and a summary to evals/results.md. Exit
 scenario fails. Calls the provider, so it spends free-tier quota; steps are paced on purpose.
 """
 import argparse
+import json
 import os
 import sys
 import tempfile
@@ -62,26 +63,48 @@ def run_with_retry(agent: Agent, scenario: Scenario, ctx: Ctx) -> Outcome:
     return outcome
 
 
-def write_report(path: Path, model: str, outcomes: dict[str, list[Outcome]], repeat: int) -> None:
-    total = sum(len(v) for v in outcomes.values())
-    passed = sum(o.passed for v in outcomes.values() for o in v)
+def write_report(directory: Path, model: str, outcomes: dict[str, list[Outcome]], fresh: bool) -> None:
+    """Merge this invocation into evals/results.json and render evals/results.md.
+
+    The full suite is run in several batches (one process each) to keep memory low, so the report
+    accumulates per scenario instead of being overwritten; `--fresh` starts it over.
+    """
+    json_path = directory / "results.json"
+    stored: dict = {}
+    if json_path.exists() and not fresh:
+        stored = json.loads(json_path.read_text(encoding="utf-8"))
+    for name, runs in outcomes.items():
+        stored[name] = {
+            "runs": len(runs),
+            "passed": sum(o.passed for o in runs),
+            "failures": sorted({f for o in runs for f in o.failures}),
+            "model": model,
+            "when": f"{datetime.now(STORE_TZ):%d/%m/%Y %H:%M}",
+        }
+    json_path.write_text(json.dumps(stored, ensure_ascii=False, indent=1), encoding="utf-8")
+
+    order = [s.name for s in SCENARIOS if s.name in stored]
+    runs_total = sum(stored[n]["runs"] for n in order)
+    runs_passed = sum(stored[n]["passed"] for n in order)
+    all_pass = sum(stored[n]["passed"] == stored[n]["runs"] for n in order)
     lines = [
         "# Eval results", "",
-        f"Model `{model}` · {datetime.now(STORE_TZ):%d/%m/%Y %H:%M} · "
-        f"{len(outcomes)} scenarios × {repeat} run(s) · **{passed}/{total} passed**", "",
-        "| Scenario | Result | What failed |", "|---|---|---|",
+        f"Model `{model}` · {len(order)}/{len(SCENARIOS)} scenarios run · "
+        f"**{runs_passed}/{runs_total} runs passed** · {all_pass}/{len(order)} scenarios passed every run", "",
+        "| Scenario | Passed runs | Last run | What failed |", "|---|---|---|---|",
     ]
-    for name, runs in outcomes.items():
-        ok = sum(o.passed for o in runs)
-        failed = sorted({f for o in runs for f in o.failures})
-        lines.append(f"| `{name}` | {ok}/{len(runs)} | {'; '.join(failed) if failed else '—'} |")
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    for name in order:
+        r = stored[name]
+        failed = "; ".join(r["failures"]) if r["failures"] else "—"
+        lines.append(f"| `{name}` | {r['passed']}/{r['runs']} | {r['when']} | {failed} |")
+    (directory / "results.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--only", nargs="*", help="scenario names to run")
     parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument("--fresh", action="store_true", help="discard previously stored results")
     args = parser.parse_args()
     for stream in (sys.stdout,):
         stream.reconfigure(encoding="utf-8")
@@ -121,7 +144,7 @@ def main() -> int:
             examples.mkdir(exist_ok=True)
             (examples / f"{scenario.example}.md").write_text(md, encoding="utf-8")
 
-    write_report(HERE / "results.md", agent.llm.model, outcomes, args.repeat)
+    write_report(HERE, agent.llm.model, outcomes, args.fresh)
     failed = [n for n, v in outcomes.items() if not all(o.passed for o in v)]
     print(f"\n{len(outcomes) - len(failed)}/{len(outcomes)} scenarios fully passing")
     return 1 if failed else 0

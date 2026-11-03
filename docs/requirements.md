@@ -35,7 +35,7 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 | E4 | README: technical decisions justified | Generated from `decisions.md` | todo |
 | E5 | README: known limitations and what I'd do with more time | Phase 7 | todo |
 | E6 | README: AI assistant usage and workflow | From `ai-workflow.md` | todo |
-| E7 | 3–5 example conversations (.md), at least one non-trivial (live data or policy rules) | `examples/`, produced by real runs of the eval script | todo |
+| E7 | 3–5 example conversations (.md), at least one non-trivial (live data or policy rules) | `examples/`, produced by real runs of the eval script | done: 5 conversations in `examples/`, from runs that passed every check |
 | E8 | Reply to the hiring email with the repo link | Manual, last step | todo |
 
 ## Suggested scenarios from the statement (all will be covered in evals)
@@ -49,7 +49,7 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 
 | # | Bottleneck | Impact | Mitigation |
 |---|------------|--------|------------|
-| B1 | LLM key, quota or model access unavailable or rate-limited (the OpenAI account already had no credits, so the provider moved to the Gemini free tier, D1) | Blocks every example; free-tier limits are low and a tool-using turn costs several requests | List accessible models first (phase 0); pick from the actual list; provider-agnostic client (D12); retry with backoff and a request throttle; cap the tool-call loop; run evals sequentially and cache embeddings; fall back to another configured provider if quota is exhausted |
+| B1 | LLM key, quota or model access unavailable or rate-limited (the OpenAI account already had no credits, so the provider moved to the Gemini free tier, D1) | Blocks every example; free-tier limits are low and a tool-using turn costs several requests | List accessible models first (phase 0); pick from the actual list; provider-agnostic client (D12); retry with backoff and a request throttle; cap the tool-call loop; run evals sequentially and cache embeddings; fall back to another configured provider if quota is exhausted. **Happened:** the free tier allows 15 requests/minute and about 500/day; the daily limit was exhausted on 2026-11-03 and blocked the last full eval run (D22) |
 | B2 | LLM invents prices/stock/deadlines | Violates manual 7.1; core evaluation point | Tool-only facts; numeric logic in code; eval asserts tool calls happened; prompt forbids unsourced numbers |
 | B3 | Order data leak (LGPD, duplicate email D9) | Serious correctness/privacy flaw | Verification bound to order owner; never reveal other customers' data; eval with wrong-identity attempt |
 | B4 | Date-dependent answers (return window, opening hours) | Wrong or unreproducible answers | Single injectable `today`/`now`, timezone America/Campo_Grande; fixed date in examples |
