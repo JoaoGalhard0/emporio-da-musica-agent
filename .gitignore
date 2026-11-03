@@ -1,0 +1,21 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+
+# Challenge statement (hiring-process material, not part of the deliverable)
+desafio_tecnico_ai_eng_artefact.pdf
+
+# Local AI-tool state (not shareable context)
+.claude/settings.local.json
+.omc/
+.claude-mem/
+
+# Conversation history generated at runtime
+.conversations/
