@@ -52,3 +52,17 @@ def test_zero_disables_pacing():
     for _ in range(100):
         rl.wait()
     assert t.slept == []
+
+
+def test_concurrent_callers_never_exceed_the_limit():
+    import threading
+
+    rl, t = limiter(5)
+    threads = [threading.Thread(target=rl.wait) for _ in range(20)]
+    for th in threads:
+        th.start()
+    for th in threads:
+        th.join()
+
+    assert len(rl._calls) <= 5
+    assert t.now >= 180  # 20 calls at 5 per minute need at least three full waits

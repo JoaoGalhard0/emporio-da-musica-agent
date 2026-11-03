@@ -4,6 +4,7 @@ The rest of the code depends on this module, never on a provider SDK, so changin
 change to `.env` only.
 """
 import os
+import threading
 import time
 from collections import deque
 from typing import Callable
@@ -32,10 +33,15 @@ class RateLimiter:
                  sleep: Callable[[float], None] = time.sleep):
         self.per_minute, self._clock, self._sleep = per_minute, clock, sleep
         self._calls: deque[float] = deque()
+        self._lock = threading.Lock()  # the HTTP API calls the model from several threads
 
     def wait(self) -> None:
         if self.per_minute <= 0:
             return
+        with self._lock:  # sleeping inside the lock is intended: later callers queue behind it
+            self._wait_locked()
+
+    def _wait_locked(self) -> None:
         now = self._clock()
         while self._calls and now - self._calls[0] >= 60:
             self._calls.popleft()
