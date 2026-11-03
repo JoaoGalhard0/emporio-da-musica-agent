@@ -79,3 +79,12 @@ Sonnet 5.5 (high effort) for implementation.
 - **A mistake the tests caught:** the discovery said 49 customers (counted with `wc -l` on a file with
   no trailing newline); the loader says 50. I fixed the test and the discovery doc.
 - **Model note:** Sonnet 5.5.
+
+## Step 9 — Phase 2: business rules
+- **I asked:** proceed to phase 2.
+- **AI did:** pure-function rules for price/PIX, installments, freight, returns and opening hours,
+  with 32 tests whose expected values were worked out by hand before running (45 tests in total).
+- **AI-proposed choices I accepted:** section 3.1 over the payment table for installments; the 30/90-day
+  defect split with a human handoff; treating "above R$ 500" as strictly greater; national holidays as
+  closed days (a real-date run on 2026-11-02 correctly reports the store closed).
+- **Model note:** Sonnet 5.5.

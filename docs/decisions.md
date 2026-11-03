@@ -110,3 +110,17 @@ or evals, then `accepted`.
 - Order tools require the order id plus the customer's email **or** phone, matched against the order
   owner (discovery D9). Failures return a generic message that does not confirm whether the order exists.
 - **Status:** accepted (privacy rule from manual section 9).
+
+## D13 — Business rules are pure Python, resolved once, covered by tests
+- **Decision:** pricing/PIX, installments, freight, return eligibility and opening hours are pure
+  functions in `src/emporio_agent/logic/`. They take the reference date/time as a parameter and
+  return structured results (including the manual section used), which the tools hand to the LLM.
+- **Resolved contradictions:**
+  - Installments (P3): section 3.1 wins over the table (min R$ 50 up to 3x, R$ 80 for 4-6x, R$ 100
+    for 7-12x), so R$ 560 can be paid in 6x.
+  - Defects (P4): exchange within 30 days of purchase; from day 31 up to 90 days after receipt it is
+    a legal-warranty claim and goes to a human; later, only the manufacturer's warranty.
+  - "Free shipping above R$ 500" excludes exactly R$ 500.00.
+- **Holidays:** national holidays (fixed dates, Consciência Negra, Good Friday computed from Easter)
+  count as closed. State and municipal holidays are not in the material: known limitation.
+- **Status:** accepted.
