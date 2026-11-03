@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Protocol
 
 from emporio_agent.config import REPO_ROOT
-from emporio_agent.data.text import tokens
+from emporio_agent.data.text import STOPWORDS, tokens
 from emporio_agent.policies.chunker import PolicyChunk, load_chunks
 
 log = logging.getLogger(__name__)
@@ -24,11 +24,6 @@ CACHE_PATH = REPO_ROOT / ".cache" / "policy_embeddings.json"
 _RRF_K = 60  # standard reciprocal-rank-fusion constant
 _COOLDOWN_SECONDS = 60  # after an embedding failure, stay keyword-only this long (free-tier quota)
 _STEM = 5  # crude Portuguese stemming: "devolver", "devolução" and "devolvido" share "devol"
-_STOPWORDS = {
-    "a", "o", "as", "os", "de", "da", "do", "das", "dos", "e", "em", "um", "uma", "para", "por",
-    "com", "que", "se", "na", "no", "nas", "nos", "ao", "ou", "eu", "meu", "minha", "posso", "pode",
-    "qual", "quais", "como", "quando", "tem", "ter", "ser", "sao", "mais", "ja", "me", "te",
-}
 
 
 class Embedder(Protocol):
@@ -43,7 +38,7 @@ class Hit:
 
 
 def _terms(text: str) -> list[str]:
-    return [t[:_STEM] for t in tokens(text) if t not in _STOPWORDS]
+    return [t[:_STEM] for t in tokens(text) if t not in STOPWORDS]
 
 
 class _BM25:

@@ -7,12 +7,12 @@ proven, and the main bottleneck (risk) for it. "Done" means verified by test or 
 
 | ID | Requirement (from the statement) | Covered by | Proof | Status |
 |----|----------------------------------|------------|-------|--------|
-| R1 | Persona aligned with the store's identity and tone | System prompt (P13: informal, professional, music-savvy, pt-BR, greets by name) | Examples + eval of tone checks | todo |
-| R2 | Receive and answer messages using the provided context | CLI loop + conversation history + tools over CSV/PDF | All examples | todo |
-| R3a | Know when to query **data** (availability, price, order status) | Product/order tools, tool-first prompt rule (7.1) | Eval: no price/stock/status answer without a tool call | todo |
-| R3b | Know when to query **policies** (exchange, hours, payment) | `search_policies` + rule-based tools (returns, payment, freight, hours) | Eval: policy questions cite the right section | todo |
-| R4 | Handle out-of-scope questions | Scope rule in prompt, accessory redirect (P6), off-topic refusal | Eval + 1 example | todo |
-| R5 | Python as the main language | Entire project | Repo | todo |
+| R1 | Persona aligned with the store's identity and tone | System prompt (P13: informal, professional, music-savvy, pt-BR, greets by name) | Examples + eval of tone checks | built, evals pending |
+| R2 | Receive and answer messages using the provided context | CLI loop + conversation history + tools over CSV/PDF | All examples | built, evals pending |
+| R3a | Know when to query **data** (availability, price, order status) | Product/order tools, tool-first prompt rule (7.1) | Eval: no price/stock/status answer without a tool call | built, evals pending |
+| R3b | Know when to query **policies** (exchange, hours, payment) | `search_policies` + rule-based tools (returns, payment, freight, hours) | Eval: policy questions cite the right section | built, evals pending |
+| R4 | Handle out-of-scope questions | Scope rule in prompt, accessory redirect (P6), off-topic refusal | Eval + 1 example | built, evals pending |
+| R5 | Python as the main language | Entire project | Repo | built, evals pending |
 
 ## Technical decisions to justify in the README
 

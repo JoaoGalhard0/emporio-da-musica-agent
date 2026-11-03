@@ -145,3 +145,39 @@ or evals, then `accepted`.
   the minority values to the chosen ones (`(67) 3341-4444`, `emporiodamusica.com.br`), so retrieval
   cannot show the model both. The PDF stays untouched; the rule is visible in code and tested.
 - **Status:** accepted (to be confirmed with the store, see README assumptions).
+
+## D15 — Nine tools, facts only from tool results
+- **Tools:** `search_products`, `get_product`, `get_store_info`, `get_order_status`,
+  `check_return_eligibility`, `calculate_payment_options`, `estimate_shipping`, `search_policies`,
+  `escalate_to_human`. Descriptions say *when* to use each: that is the data-vs-policies routing.
+- Money is returned already formatted ("R$ 2.199,00") so the model copies instead of computing.
+- Catalog search matches whole words after singularizing ("violões" = "violão"). A 4-letter prefix
+  match was tried first and rejected: "Stradivarius" matched "Stratocaster".
+- A budget filter ("até R$ 1000") applies to the price the customer pays, promotions included; PIX is a
+  payment choice and does not change the filter.
+- **Status:** accepted.
+
+## D16 — Identity is code state, locked after 3 misses
+- `get_order_status` and `check_return_eligibility` need the order number plus the e-mail or phone of
+  the order's owner. Success is stored in `Session.verified_customers` by the tool, never by the model;
+  once a customer is verified, their other orders need no re-check, other customers' orders still do.
+- An e-mail shared by two customers (11 and 43) cannot prove ownership; the phone can.
+- "No such order" and "wrong contact" return the identical answer, so order numbers cannot be probed.
+  Three failures lock the session (an already-verified customer keeps access).
+- **Status:** accepted.
+
+## D17 — Grounding guard on quoted amounts
+- Every R$ amount in the final answer must appear in a tool result or in the customer's own messages
+  (`grounding.py`). If not, the model gets one automatic correction request; the rejected draft and the
+  request are dropped from the history. If it still fails, the answer is delivered and the amounts are
+  reported in the turn result, which the evals assert is empty.
+- Why: manual section 7.1 forbids stating prices without consulting the system; the prompt asks for it,
+  this makes it checkable.
+- **Limitation:** it checks amounts only, not dates, percentages or deadlines.
+- **Status:** accepted.
+
+## D18 — History is committed only when a turn completes
+- A turn works on a copy of the history; it is appended to the session only after the final answer.
+  A provider error or a step limit (6 model calls) leaves the session clean and returns a polite
+  fallback message in Portuguese.
+- **Status:** accepted.

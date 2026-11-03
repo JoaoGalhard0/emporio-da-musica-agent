@@ -106,3 +106,23 @@ Sonnet 5.5 (high effort) for implementation.
 - **Honest result:** hybrid does not beat keyword on direct questions (both 18/18 in the top 3); it
   doubles top-1 accuracy on paraphrases (8/10 vs 4/10). That is the justification for keeping it.
 - **Model note:** Sonnet 5.5.
+
+## Step 11 — Phase 4: tools, identity, agent loop and prompt
+- **I asked:** proceed to phase 4; the prompt in English (I decided this when asked).
+- **AI did:** 9 tools with identity checks, a session object, the agent loop, the English system prompt,
+  a grounding guard for quoted amounts, 48 new tests (106 offline in total) and live smoke runs of the
+  four scenarios suggested in the challenge plus accessory and off-topic questions.
+- **Bugs the tests caught (all in code the AI had just written):**
+  1. A discount of "20" rendered as "2%": `rstrip("0")` ate a zero from an integer. A customer would
+     have been shown the wrong discount.
+  2. A 4-letter prefix match let "Stradivarius" find "Stratocaster"; replaced with singularized whole
+     words.
+  3. The internal correction message listed the rejected amounts and was then counted as a valid source
+     for them, so a repeated invented price would have passed the guard.
+  4. A scripted text replacement silently did nothing; I switched to the Edit tool, which fails loudly.
+- **Behavior I tuned after reading real answers:** WhatsApp-style bold instead of Markdown, no details
+  beyond the tool result (the model had added a refund detail that is not in the manual), and mention
+  of extra matches when a search is truncated.
+- **Judgment call the AI made that I should review:** after an eligible return the agent offers to open
+  a ticket through `escalate_to_human`; it cannot start a return itself.
+- **Model note:** Sonnet 5.5.

@@ -11,3 +11,11 @@ def normalize(text: str) -> str:
 
 def tokens(text: str) -> list[str]:
     return re.findall(r"[a-z0-9]+", normalize(text))
+
+
+# Common Portuguese function words, ignored when matching customer wording against the data.
+STOPWORDS = {
+    "a", "o", "as", "os", "de", "da", "do", "das", "dos", "e", "em", "um", "uma", "para", "por",
+    "com", "que", "se", "na", "no", "nas", "nos", "ao", "ou", "eu", "meu", "minha", "posso", "pode",
+    "qual", "quais", "como", "quando", "tem", "ter", "ser", "sao", "mais", "ja", "me", "te",
+}

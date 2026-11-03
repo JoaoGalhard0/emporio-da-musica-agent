@@ -33,6 +33,17 @@ class LLMClient:
             raise LLMNotConfigured(f"Missing in .env: {', '.join(missing)} (see .env.example)")
         return cls(values["LLM_API_KEY"], values["LLM_BASE_URL"], values["LLM_MODEL"], values["EMBEDDING_MODEL"])
 
+    def chat(self, messages: list[dict], tools: list[dict] | None = None, temperature: float = 0.2) -> dict:
+        """One non-streaming completion; returns the assistant message as a plain dict.
+
+        The dict is kept exactly as the provider sent it (model_dump keeps unknown fields) because
+        Gemini attaches thought signatures to tool calls and expects them back on the next request.
+        """
+        response = self._client.chat.completions.create(
+            model=self.model, messages=messages, tools=tools or None, temperature=temperature
+        )
+        return response.choices[0].message.model_dump(exclude_none=True)
+
     def embed(self, texts: list[str]) -> list[list[float]]:
         vectors: list[list[float]] = []
         for start in range(0, len(texts), _EMBED_BATCH):
