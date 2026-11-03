@@ -41,4 +41,18 @@ Text-based customer service agent prototype for the fictional store Empório da 
 - Code implementation: Sonnet 5.5, high effort.
 
 ## Commands
-Filled in as the project is built (see README).
+```
+python -m venv .venv && .venv\Scripts\activate     # Windows (use .venv/bin/activate elsewhere)
+pip install -r requirements.txt                    # editable install + pytest
+copy .env.example .env                             # then fill LLM_API_KEY
+
+python -m emporio_agent                            # interactive chat
+python -m emporio_agent --tools --now 2026-02-20T10:00   # show tool calls, fixed store clock
+python -m emporio_agent --resume <session-id>      # continue a saved conversation
+python -m emporio_agent --script s.txt --out examples/s.md   # replay customer messages
+
+pytest                                             # offline tests (no network)
+pytest -m live                                     # real provider (spends free-tier quota)
+```
+Set `PYTHONUTF8=1` on Windows if accents look garbled in other tools. Sessions and escalation
+tickets are written to `.conversations/` (git-ignored).

@@ -1,5 +1,2 @@
-openai>=1.50,<3
-python-dotenv>=1.0,<2
-pypdf>=5.0,<7
-tzdata>=2024.1
-pytest>=8.0,<9
+# Installs the project in editable mode with its runtime and test dependencies (see pyproject.toml).
+-e .[dev]

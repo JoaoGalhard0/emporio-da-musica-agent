@@ -126,3 +126,16 @@ Sonnet 5.5 (high effort) for implementation.
 - **Judgment call the AI made that I should review:** after an eligible return the agent offers to open
   a ticket through `escalate_to_human`; it cannot start a return itself.
 - **Model note:** Sonnet 5.5.
+
+## Step 12 — Phase 5: CLI, resume and scripted runner
+- **I asked:** proceed to phase 5.
+- **AI did:** interactive CLI (`/new`, `/tools`, `/exit`), `--resume`, `--now`, a scripted runner that
+  writes Markdown transcripts with tool calls, UTF-8 console setup, and 12 tests (118 offline in
+  total). Ran the real entry point against the live model: piped stdin, resume with context, and
+  script mode.
+- **Gap found by actually running it:** `python -m emporio_agent` failed with "No module named
+  emporio_agent": the tests passed only because pytest was configured with `pythonpath = src`. I made
+  the project pip-installable so a fresh clone works with `pip install -r requirements.txt`.
+- **Decision I kept for the AI's proposal:** FastAPI stays out for now; the agent core is I/O-free so
+  an endpoint is a thin wrapper, listed under "what I'd do with more time".
+- **Model note:** Sonnet 5.5.

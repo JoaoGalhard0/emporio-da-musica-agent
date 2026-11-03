@@ -22,3 +22,8 @@ desafio_tecnico_ai_eng_artefact.pdf
 
 # Embedding cache (rebuilt on first run)
 .cache/
+
+# Packaging artifacts
+*.egg-info/
+build/
+dist/

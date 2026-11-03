@@ -181,3 +181,19 @@ or evals, then `accepted`.
   A provider error or a step limit (6 model calls) leaves the session clean and returns a polite
   fallback message in Portuguese.
 - **Status:** accepted.
+
+## D19 — CLI details (builds on D7 and D8)
+- One module (`cli.py`) does all I/O; `python -m emporio_agent` chats, `--resume ID` continues a
+  saved session, `--now ISO` fixes the store clock, `--tools` shows tool calls.
+- **Scripted mode** (`--script file.txt --out file.md`) replays one customer message per line through
+  the same agent and writes a Markdown transcript with the tool calls. The example conversations are
+  produced this way, so they are real runs and reproducible, not hand-written.
+- The session is saved after every completed turn (a crash loses nothing) and never after a failed
+  one. Sessions and escalation tickets live in `.conversations/`, which is git-ignored because it
+  holds customer data.
+- The CLI sets stdout/stdin to UTF-8, because the default Windows code page garbles accents.
+- The project is pip-installable (`pyproject.toml`, `requirements.txt` = `-e .[dev]`) so a fresh
+  clone runs with two commands.
+- **FastAPI:** not built; the agent core has no I/O, so a `/chat` endpoint would be a thin wrapper.
+  Left as a "what I'd do with more time" item.
+- **Status:** accepted.
