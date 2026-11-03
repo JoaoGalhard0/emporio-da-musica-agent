@@ -129,7 +129,7 @@ script mode and published only from runs that passed every eval check. They are 
   the customer, and no "I registered it" without the tool call that registers it. One automatic retry.
 ```
 
-The agent core does no I/O, so a WhatsApp webhook or an HTTP API would be a thin wrapper around `Agent.reply`.
+The agent core does no I/O, so the HTTP API below is a thin wrapper around `Agent.reply`, and a WhatsApp webhook would be another one.
 
 ## Technical decisions
 
@@ -175,7 +175,7 @@ The statement allows assuming and documenting. These are the ones that change be
 
 ## Tests and evals
 
-**Offline tests (156, no network):** `pytest`. They cover the data layer against the discovery findings, every
+**Offline tests (157, no network):** `pytest`. They cover the data layer against the discovery findings, every
 business rule at its boundaries, policy chunking and retrieval, tool behavior and identity checks, the agent loop
 with a scripted model, the CLI, the rate limiter, and the eval framework itself.
 
@@ -214,7 +214,7 @@ What the evals found, and what they did not finish (honest account):
 - **No real integrations:** no WhatsApp, no real ticketing (tickets are lines in a local file), no payment or
   shipping APIs.
 - **History is not summarized:** a very long conversation grows the prompt without bound.
-- **Single user, local JSON sessions:** no concurrency or authentication of the chat channel itself.
+- **Local JSON sessions, no channel authentication:** the HTTP API serves several customers at once (worker threads, a lock per session, a thread-safe rate limiter), but sessions live in one process and one folder, so it does not scale across machines, and the channel itself is not authenticated.
 - **Data quality is accepted as-is:** orders 3 and 20 have totals that do not match their items, a `coming_soon`
   product appears in a delivered order, and the manual advertises categories the catalog does not have. The agent
   reports what the data says and never claims products the tools do not return.
@@ -253,7 +253,7 @@ proposed, implemented and ran things. Each phase ended with tests, a commit and 
 | 6–7 | **Provider change** and model choice | Researched the free tier, proposed a provider-agnostic client, measured 6 models | OpenAI had no credits: Gemini free tier; accepted the measured model |
 | 8–9 | Data layer and business rules | Typed loaders, pure rules, 45 tests | Section 3.1 wins over the table; the 30/90-day defect split; strictly-above R$ 500 |
 | 10 | Policy retrieval | Section chunker, hybrid search, measured it | Kept the hybrid because of the paraphrase result |
-| 10 | Architecture question | Said plainly that this is layered, **not** Clean Architecture or FastAPI | Keep it pragmatic; FastAPI deferred (built later, step 15) |
+| 10 | Architecture question | Said plainly that this is layered, **not** Clean Architecture or FastAPI | Keep it pragmatic; FastAPI deferred (built later, step 16) |
 | 11 | Tools, identity, loop, prompt | 9 tools, grounding guard, 48 tests, live smoke runs | Prompt in English |
 | 12–13 | CLI and evals | CLI, scripted runner, 27 scenarios, example transcripts | Publish examples only from fully passing runs |
 | 14 | Final live round | Found the hallucinated registration; added guards and a rate limiter | Approved the fixes; the quota stopped the last full pass |
@@ -279,6 +279,10 @@ mistakes, and tests, evals or reading the output caught them.
 - A full eval pass was started with `--fresh`, which destroyed the accumulated results file. That was the
   assistant's mistake and it is logged as such.
 
+**Git history.** The history is incremental, with small semantic commits in the order the work happened. There was
+one force-push, early and before anything was delivered, to rewrite the first commits in English after I decided
+the repository language (step 4); there has been none since.
+
 **Where I overrode or redirected it.** The provider (OpenAI, then Gemini), English-only repo, keeping the
 architecture pragmatic, and publishing only passing, unedited transcripts. The complete, numbered account, with
 the model used at each step, is in [`docs/ai-workflow.md`](docs/ai-workflow.md).
@@ -296,7 +300,7 @@ src/emporio_agent/
   data/        CSV loading, typed models, text helpers
   logic/       pricing, payment, shipping, returns, store hours (pure functions)
   policies/    PDF chunker, hybrid retriever
-tests/         offline unit tests (156)          evals/        live behavior evals (27 scenarios)
+tests/         offline unit tests (157)          evals/        live behavior evals (27 scenarios)
 examples/      5 real conversations               docs/         requirements, discovery, decisions, ai-workflow, plan
 data/          the store's CSVs and policies PDF  CLAUDE.md     project context for AI assistants
 ```
