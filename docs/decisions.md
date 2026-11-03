@@ -48,12 +48,27 @@ or evals, then `accepted`.
 - **Risk:** retrieval misses a section (B6). Mitigation: top-k=3, evals per topic.
 - **Status:** proposed.
 
-## D6 — Model: a fast Gemini "flash"-class model with tool use, chosen from the key's real model list
-- **Rationale:** the task is tool routing plus short answers; a small, fast model keeps latency low
-  and spends the least free-tier quota. Model names change often, so none is hardcoded here: phase 0
-  lists the models the key can use, picks one, and records it here with the measured eval results.
-  `LLM_MODEL` makes it swappable.
-- **Status:** proposed, finalize in phase 0.
+## D6 — Model: `gemini-3.5-flash-lite` (chat) and `gemini-embedding-001` (embeddings)
+- **Method:** phase 0 listed the 60 models the key can use and ran `scripts/probe_models.py`
+  (one tool-calling request per candidate) plus a 12-request burst on the finalists, on 2026-11-02.
+- **Measured results**
+
+  | Model | Tool call on the probe | Latency | Free-tier burst |
+  |-------|------------------------|---------|-----------------|
+  | `gemini-2.5-flash`, `gemini-2.5-flash-lite` | 404, "no longer available to new users" | — | — |
+  | `gemini-3.8-flash` | correct | **198 s** | not tested |
+  | `gemini-3.1-flash-lite` | correct | 11.8 s | not tested |
+  | `gemini-3.5-flash` | correct | 4.3 s | **429 on the 7th request** (about 5 RPM) |
+  | `gemini-3.5-flash-lite` | correct | **1.1 s** | **12/12 ok in 10 s** |
+
+- **Decision:** `gemini-3.5-flash-lite`. It called the tool correctly, is the fastest and is the only
+  finalist that sustains a multi-request agent loop on the free tier. `gemini-3.5-flash` stays as an
+  optional higher-quality setting via `LLM_MODEL`, but its quota makes it unfit for evals.
+- **Embeddings:** `gemini-embedding-001` (stable, 3072 dimensions, probe ok) over
+  `gemini-embedding-2`, which is newer with no benefit for ~25 short chunks.
+- **Caveat:** quotas observed on one day, for one project; they may differ for the evaluator. The
+  client (D12) retries 429s with backoff.
+- **Status:** accepted. Re-check against eval results in phase 6.
 
 ## D12 — Provider-agnostic LLM client
 - **Decision:** one thin wrapper around the OpenAI-compatible chat/embeddings API, configured by

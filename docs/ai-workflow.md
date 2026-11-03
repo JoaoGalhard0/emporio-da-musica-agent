@@ -61,3 +61,12 @@ Sonnet 5.5 (high effort) for implementation.
   a config change. Updated D1, D5, D6, D12, bottleneck B1 and the env files.
 - **I decided:** Gemini free tier. Open risk the AI flagged: low, unconfirmed free-tier rate limits.
 - **Model note:** Sonnet 5.5.
+
+## Step 7 — Phase 0: environment and model choice
+- **I asked:** start phase 0 and decide the models after putting my key in `.env`.
+- **AI did:** created the venv and pinned `requirements.txt`; wrote `scripts/probe_models.py`; listed
+  the 60 models my key can use; tested tool calling on six candidates and burst-tested two finalists.
+  Found that the 2.5 models are closed to new users, `gemini-3.8-flash` took 198 s for one call, and
+  `gemini-3.5-flash` returns 429 after 6 requests. Recommended `gemini-3.5-flash-lite`.
+- **I decided:** accepted the measured recommendation (results are in `docs/decisions.md` D6).
+- **Model note:** Sonnet 5.5. The key was read from `.env` by the scripts and never printed.
